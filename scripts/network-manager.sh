@@ -1,29 +1,28 @@
 #!/bin/bash
 
 # Anime-themed Network Manager Script
-# ----------------------------------
+# ---------------------------------
 # This script manages network connections with anime-themed notifications
 
 # Configuration
-NETWORK_ICON="$HOME/.config/hypr/icons/network.png"
 WIFI_ICON="$HOME/.config/hypr/icons/wifi.png"
 ETHERNET_ICON="$HOME/.config/hypr/icons/ethernet.png"
 DISCONNECTED_ICON="$HOME/.config/hypr/icons/disconnected.png"
 CONNECT_SOUND="$HOME/.config/hypr/sounds/connect.wav"
 DISCONNECT_SOUND="$HOME/.config/hypr/sounds/disconnect.wav"
 
-# Function to check if NetworkManager is installed
-check_network_manager() {
+# Function to check if nmcli is installed
+check_nmcli() {
     if ! command -v nmcli &> /dev/null; then
-        notify-send "Network Manager" "NetworkManager is not installed. Please install it to use this script." -i "$DISCONNECTED_ICON"
+        notify-send "Network Manager" "nmcli is not installed. Please install it to use this script." -i "$DISCONNECTED_ICON"
         exit 1
     fi
 }
 
 # Function to get network status
 get_network_status() {
-    # Check if NetworkManager is installed
-    check_network_manager
+    # Check if nmcli is installed
+    check_nmcli
     
     # Get network status
     local status=$(nmcli -t -f STATE g)
@@ -31,58 +30,85 @@ get_network_status() {
     echo "$status"
 }
 
-# Function to get active connection
-get_active_connection() {
-    # Check if NetworkManager is installed
-    check_network_manager
+# Function to get connection type
+get_connection_type() {
+    # Check if nmcli is installed
+    check_nmcli
     
-    # Get active connection
-    local connection=$(nmcli -t -f NAME,DEVICE,STATE c s --active | head -n 1)
+    # Get connection type
+    local type=$(nmcli -t -f TYPE c show --active | head -n 1)
     
-    echo "$connection"
+    echo "$type"
 }
 
-# Function to get available networks
-get_available_networks() {
-    # Check if NetworkManager is installed
-    check_network_manager
+# Function to get connection name
+get_connection_name() {
+    # Check if nmcli is installed
+    check_nmcli
     
-    # Get available networks
-    local networks=$(nmcli -t -f SSID,SIGNAL,SECURITY d wifi list | sort -k2 -nr)
+    # Get connection name
+    local name=$(nmcli -t -f NAME c show --active | head -n 1)
     
-    echo "$networks"
+    echo "$name"
 }
 
-# Function to connect to a network
-connect_to_network() {
-    # Check if NetworkManager is installed
-    check_network_manager
+# Function to get IP address
+get_ip_address() {
+    # Check if nmcli is installed
+    check_nmcli
     
-    # Get the network to connect to
-    local network=$(get_available_networks | wofi --dmenu --prompt "Select Network" --style "$HOME/.config/wofi/power-menu.css")
+    # Get IP address
+    local ip=$(nmcli -t -f IP4.ADDRESS c show --active | head -n 1 | cut -d '/' -f 1)
     
-    if [ -z "$network" ]; then
-        return
+    echo "$ip"
+}
+
+# Function to get signal strength (for WiFi)
+get_signal_strength() {
+    # Check if nmcli is installed
+    check_nmcli
+    
+    # Get signal strength
+    local strength=$(nmcli -t -f SIGNAL d wifi list --rescan no | grep "$(get_connection_name)" | cut -d ':' -f 2)
+    
+    echo "$strength"
+}
+
+# Function to list available WiFi networks
+list_wifi_networks() {
+    # Check if nmcli is installed
+    check_nmcli
+    
+    # List available WiFi networks
+    nmcli -t -f SSID,SIGNAL,SECURITY d wifi list --rescan yes
+}
+
+# Function to connect to a WiFi network
+connect_wifi() {
+    # Check if nmcli is installed
+    check_nmcli
+    
+    # Get the SSID to connect to
+    local ssid="$1"
+    
+    # Get the password (if needed)
+    local password=""
+    if [ -n "$2" ]; then
+        password="$2"
+    else
+        # Check if the network is secured
+        local security=$(nmcli -t -f SECURITY d wifi list --rescan no | grep "$ssid" | cut -d ':' -f 2)
+        
+        if [ "$security" != "--" ]; then
+            # Ask for password
+            password=$(wofi --dmenu --password --prompt "Enter password for $ssid" --style "$HOME/.config/wofi/power-menu.css")
+        fi
     fi
     
-    # Extract the SSID
-    local ssid=$(echo "$network" | cut -d: -f1)
-    
-    # Check if the network is secured
-    local security=$(echo "$network" | cut -d: -f3)
-    
-    if [ "$security" != "" ]; then
-        # Get the password
-        local password=$(wofi --dmenu --prompt "Enter Password" --password --style "$HOME/.config/wofi/power-menu.css")
-        
-        if [ -z "$password" ]; then
-            return
-        fi
-        
-        # Connect to the network
+    # Connect to the network
+    if [ -n "$password" ]; then
         nmcli d wifi connect "$ssid" password "$password"
     else
-        # Connect to the network
         nmcli d wifi connect "$ssid"
     fi
     
@@ -103,21 +129,13 @@ connect_to_network() {
     fi
 }
 
-# Function to disconnect from a network
-disconnect_from_network() {
-    # Check if NetworkManager is installed
-    check_network_manager
+# Function to disconnect from the current network
+disconnect_network() {
+    # Check if nmcli is installed
+    check_nmcli
     
-    # Get active connection
-    local connection=$(get_active_connection)
-    
-    if [ -z "$connection" ]; then
-        notify-send "Network Manager" "No active connection" -i "$DISCONNECTED_ICON"
-        return
-    fi
-    
-    # Extract the connection name
-    local name=$(echo "$connection" | cut -d: -f1)
+    # Get the connection name
+    local name=$(get_connection_name)
     
     # Disconnect from the network
     nmcli c down "$name"
@@ -141,13 +159,13 @@ disconnect_from_network() {
 
 # Function to toggle WiFi
 toggle_wifi() {
-    # Check if NetworkManager is installed
-    check_network_manager
+    # Check if nmcli is installed
+    check_nmcli
     
-    # Get WiFi status
-    local status=$(nmcli radio wifi)
+    # Check if WiFi is enabled
+    local wifi_enabled=$(nmcli radio wifi)
     
-    if [ "$status" = "enabled" ]; then
+    if [ "$wifi_enabled" = "enabled" ]; then
         # Disable WiFi
         nmcli radio wifi off
         
@@ -174,23 +192,32 @@ toggle_wifi() {
 
 # Function to show network information
 show_network_info() {
-    # Check if NetworkManager is installed
-    check_network_manager
+    # Check if nmcli is installed
+    check_nmcli
     
     # Get network status
     local status=$(get_network_status)
     
-    # Get active connection
-    local connection=$(get_active_connection)
+    # Get connection type
+    local type=$(get_connection_type)
+    
+    # Get connection name
+    local name=$(get_connection_name)
     
     # Get IP address
-    local ip=$(ip addr show | grep "inet " | grep -v "127.0.0.1" | awk '{print $2}' | cut -d/ -f1)
+    local ip=$(get_ip_address)
+    
+    # Get signal strength (for WiFi)
+    local signal=""
+    if [ "$type" = "wifi" ]; then
+        signal="Signal: $(get_signal_strength)%"
+    fi
     
     # Show network information
-    notify-send "Network Manager" "Status: $status\nConnection: $connection\nIP: $ip" -i "$NETWORK_ICON"
+    notify-send "Network Manager" "Status: $status\nType: $type\nName: $name\nIP: $ip\n$signal" -i "$WIFI_ICON"
     
     # Return the values for display
-    echo "Status: $status | Connection: $connection | IP: $ip"
+    echo "Status: $status | Type: $type | Name: $name | IP: $ip | $signal"
 }
 
 # Main function
@@ -200,11 +227,26 @@ main() {
         "status")
             get_network_status
             ;;
+        "type")
+            get_connection_type
+            ;;
+        "name")
+            get_connection_name
+            ;;
+        "ip")
+            get_ip_address
+            ;;
+        "signal")
+            get_signal_strength
+            ;;
+        "list")
+            list_wifi_networks
+            ;;
         "connect")
-            connect_to_network
+            connect_wifi "$2" "$3"
             ;;
         "disconnect")
-            disconnect_from_network
+            disconnect_network
             ;;
         "toggle")
             toggle_wifi
@@ -214,17 +256,37 @@ main() {
             ;;
         *)
             # Show a menu
-            choice=$(echo -e "Show Network Status\nConnect to Network\nDisconnect from Network\nToggle WiFi\nShow Network Information" | wofi --dmenu --prompt "Network Manager" --style "$HOME/.config/wofi/power-menu.css")
+            choice=$(echo -e "Show Network Status\nShow Connection Type\nShow Connection Name\nShow IP Address\nShow Signal Strength\nList WiFi Networks\nConnect to WiFi\nDisconnect from Network\nToggle WiFi\nShow Network Information" | wofi --dmenu --prompt "Network Manager" --style "$HOME/.config/wofi/power-menu.css")
             
             case "$choice" in
                 "Show Network Status")
                     get_network_status
                     ;;
-                "Connect to Network")
-                    connect_to_network
+                "Show Connection Type")
+                    get_connection_type
+                    ;;
+                "Show Connection Name")
+                    get_connection_name
+                    ;;
+                "Show IP Address")
+                    get_ip_address
+                    ;;
+                "Show Signal Strength")
+                    get_signal_strength
+                    ;;
+                "List WiFi Networks")
+                    list_wifi_networks
+                    ;;
+                "Connect to WiFi")
+                    # Get the SSID to connect to
+                    ssid=$(list_wifi_networks | wofi --dmenu --prompt "Select WiFi Network" --style "$HOME/.config/wofi/power-menu.css" | cut -d ':' -f 1)
+                    
+                    if [ -n "$ssid" ]; then
+                        connect_wifi "$ssid"
+                    fi
                     ;;
                 "Disconnect from Network")
-                    disconnect_from_network
+                    disconnect_network
                     ;;
                 "Toggle WiFi")
                     toggle_wifi
