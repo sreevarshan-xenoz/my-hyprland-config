@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# Anime-themed Network Manager Script
-# ---------------------------------
+# Anime-themed Network Manager Script (Optimized for Low-End Devices)
+# ----------------------------------------------------------------
 # This script manages network connections with anime-themed notifications
+# Optimized for low-end devices with reduced resource usage
 
 # Configuration
 WIFI_ICON="$HOME/.config/hypr/icons/wifi.png"
@@ -11,11 +12,35 @@ DISCONNECTED_ICON="$HOME/.config/hypr/icons/disconnected.png"
 CONNECT_SOUND="$HOME/.config/hypr/sounds/connect.wav"
 DISCONNECT_SOUND="$HOME/.config/hypr/sounds/disconnect.wav"
 
+# Performance settings
+# Set to true to disable sound effects (reduces resource usage)
+DISABLE_SOUNDS=false
+# Set to true to disable notifications (reduces resource usage)
+DISABLE_NOTIFICATIONS=false
+# Set to true to use simpler network commands (reduces resource usage)
+USE_SIMPLE_COMMANDS=true
+
 # Function to check if nmcli is installed
 check_nmcli() {
     if ! command -v nmcli &> /dev/null; then
-        notify-send "Network Manager" "nmcli is not installed. Please install it to use this script." -i "$DISCONNECTED_ICON"
+        if [ "$DISABLE_NOTIFICATIONS" = false ]; then
+            notify-send "Network Manager" "nmcli is not installed. Please install it to use this script." -i "$DISCONNECTED_ICON"
+        fi
         exit 1
+    fi
+}
+
+# Function to play sound (with performance check)
+play_sound() {
+    if [ "$DISABLE_SOUNDS" = false ] && [ -f "$1" ]; then
+        paplay "$1" &
+    fi
+}
+
+# Function to send notification (with performance check)
+send_notification() {
+    if [ "$DISABLE_NOTIFICATIONS" = false ]; then
+        notify-send "$1" "$2" -i "$3"
     fi
 }
 
@@ -25,7 +50,12 @@ get_network_status() {
     check_nmcli
     
     # Get network status
-    local status=$(nmcli -t -f STATE g)
+    if [ "$USE_SIMPLE_COMMANDS" = true ]; then
+        # Simpler command for low-end devices
+        local status=$(nmcli -t -f STATE g 2>/dev/null || echo "unknown")
+    else
+        local status=$(nmcli -t -f STATE g)
+    fi
     
     echo "$status"
 }
@@ -36,7 +66,12 @@ get_connection_type() {
     check_nmcli
     
     # Get connection type
-    local type=$(nmcli -t -f TYPE c show --active | head -n 1)
+    if [ "$USE_SIMPLE_COMMANDS" = true ]; then
+        # Simpler command for low-end devices
+        local type=$(nmcli -t -f TYPE c show --active | head -n 1 2>/dev/null || echo "none")
+    else
+        local type=$(nmcli -t -f TYPE c show --active | head -n 1)
+    fi
     
     echo "$type"
 }
@@ -47,7 +82,12 @@ get_connection_name() {
     check_nmcli
     
     # Get connection name
-    local name=$(nmcli -t -f NAME c show --active | head -n 1)
+    if [ "$USE_SIMPLE_COMMANDS" = true ]; then
+        # Simpler command for low-end devices
+        local name=$(nmcli -t -f NAME c show --active | head -n 1 2>/dev/null || echo "none")
+    else
+        local name=$(nmcli -t -f NAME c show --active | head -n 1)
+    fi
     
     echo "$name"
 }
@@ -58,7 +98,12 @@ get_ip_address() {
     check_nmcli
     
     # Get IP address
-    local ip=$(nmcli -t -f IP4.ADDRESS c show --active | head -n 1 | cut -d '/' -f 1)
+    if [ "$USE_SIMPLE_COMMANDS" = true ]; then
+        # Simpler command for low-end devices
+        local ip=$(nmcli -t -f IP4.ADDRESS c show --active | head -n 1 | cut -d '/' -f 1 2>/dev/null || echo "none")
+    else
+        local ip=$(nmcli -t -f IP4.ADDRESS c show --active | head -n 1 | cut -d '/' -f 1)
+    fi
     
     echo "$ip"
 }
@@ -69,7 +114,12 @@ get_signal_strength() {
     check_nmcli
     
     # Get signal strength
-    local strength=$(nmcli -t -f SIGNAL d wifi list --rescan no | grep "$(get_connection_name)" | cut -d ':' -f 2)
+    if [ "$USE_SIMPLE_COMMANDS" = true ]; then
+        # Simpler command for low-end devices
+        local strength=$(nmcli -t -f SIGNAL d wifi list --rescan no | grep "$(get_connection_name)" | cut -d ':' -f 2 2>/dev/null || echo "0")
+    else
+        local strength=$(nmcli -t -f SIGNAL d wifi list --rescan no | grep "$(get_connection_name)" | cut -d ':' -f 2)
+    fi
     
     echo "$strength"
 }
@@ -80,7 +130,12 @@ list_wifi_networks() {
     check_nmcli
     
     # List available WiFi networks
-    nmcli -t -f SSID,SIGNAL,SECURITY d wifi list --rescan yes
+    if [ "$USE_SIMPLE_COMMANDS" = true ]; then
+        # Simpler command for low-end devices
+        nmcli -t -f SSID,SIGNAL d wifi list --rescan yes 2>/dev/null || echo "No networks found"
+    else
+        nmcli -t -f SSID,SIGNAL,SECURITY d wifi list --rescan yes
+    fi
 }
 
 # Function to connect to a WiFi network
@@ -97,7 +152,12 @@ connect_wifi() {
         password="$2"
     else
         # Check if the network is secured
-        local security=$(nmcli -t -f SECURITY d wifi list --rescan no | grep "$ssid" | cut -d ':' -f 2)
+        if [ "$USE_SIMPLE_COMMANDS" = true ]; then
+            # Simpler command for low-end devices
+            local security=$(nmcli -t -f SECURITY d wifi list --rescan no | grep "$ssid" | cut -d ':' -f 2 2>/dev/null || echo "--")
+        else
+            local security=$(nmcli -t -f SECURITY d wifi list --rescan no | grep "$ssid" | cut -d ':' -f 2)
+        fi
         
         if [ "$security" != "--" ]; then
             # Ask for password
@@ -115,15 +175,15 @@ connect_wifi() {
     # Check if the connection was successful
     if [ $? -eq 0 ]; then
         # Play a sound effect
-        paplay "$CONNECT_SOUND" &
+        play_sound "$CONNECT_SOUND"
         
         # Show success notification
-        notify-send "Network Manager" "Connected to $ssid" -i "$WIFI_ICON"
+        send_notification "Network Manager" "Connected to $ssid" "$WIFI_ICON"
         
         echo "Connected to $ssid"
     else
         # Show error notification
-        notify-send "Network Manager" "Failed to connect to $ssid" -i "$DISCONNECTED_ICON"
+        send_notification "Network Manager" "Failed to connect to $ssid" "$DISCONNECTED_ICON"
         
         echo "Failed to connect to $ssid"
     fi
@@ -143,15 +203,15 @@ disconnect_network() {
     # Check if the disconnection was successful
     if [ $? -eq 0 ]; then
         # Play a sound effect
-        paplay "$DISCONNECT_SOUND" &
+        play_sound "$DISCONNECT_SOUND"
         
         # Show success notification
-        notify-send "Network Manager" "Disconnected from $name" -i "$DISCONNECTED_ICON"
+        send_notification "Network Manager" "Disconnected from $name" "$DISCONNECTED_ICON"
         
         echo "Disconnected from $name"
     else
         # Show error notification
-        notify-send "Network Manager" "Failed to disconnect from $name" -i "$DISCONNECTED_ICON"
+        send_notification "Network Manager" "Failed to disconnect from $name" "$DISCONNECTED_ICON"
         
         echo "Failed to disconnect from $name"
     fi
@@ -170,10 +230,10 @@ toggle_wifi() {
         nmcli radio wifi off
         
         # Play a sound effect
-        paplay "$DISCONNECT_SOUND" &
+        play_sound "$DISCONNECT_SOUND"
         
         # Show success notification
-        notify-send "Network Manager" "WiFi disabled" -i "$DISCONNECTED_ICON"
+        send_notification "Network Manager" "WiFi disabled" "$DISCONNECTED_ICON"
         
         echo "WiFi disabled"
     else
@@ -181,10 +241,10 @@ toggle_wifi() {
         nmcli radio wifi on
         
         # Play a sound effect
-        paplay "$CONNECT_SOUND" &
+        play_sound "$CONNECT_SOUND"
         
         # Show success notification
-        notify-send "Network Manager" "WiFi enabled" -i "$WIFI_ICON"
+        send_notification "Network Manager" "WiFi enabled" "$WIFI_ICON"
         
         echo "WiFi enabled"
     fi
@@ -214,14 +274,34 @@ show_network_info() {
     fi
     
     # Show network information
-    notify-send "Network Manager" "Status: $status\nType: $type\nName: $name\nIP: $ip\n$signal" -i "$WIFI_ICON"
+    send_notification "Network Manager" "Status: $status\nType: $type\nName: $name\nIP: $ip\n$signal" "$WIFI_ICON"
     
     # Return the values for display
     echo "Status: $status | Type: $type | Name: $name | IP: $ip | $signal"
 }
 
+# Function to detect system capabilities and adjust settings
+detect_system_capabilities() {
+    # Check CPU cores
+    local cpu_cores=$(nproc 2>/dev/null || echo 2)
+    
+    # Check available memory
+    local available_memory=$(free -m | awk '/^Mem:/ {print $7}' 2>/dev/null || echo 1024)
+    
+    # Adjust settings based on system capabilities
+    if [ "$cpu_cores" -le 2 ] || [ "$available_memory" -lt 2048 ]; then
+        # Low-end device detected
+        DISABLE_SOUNDS=true
+        DISABLE_NOTIFICATIONS=false
+        USE_SIMPLE_COMMANDS=true
+    fi
+}
+
 # Main function
 main() {
+    # Detect system capabilities
+    detect_system_capabilities
+    
     # Check the argument
     case "$1" in
         "status")
@@ -254,9 +334,23 @@ main() {
         "info")
             show_network_info
             ;;
+        "low-end")
+            # Enable low-end mode
+            DISABLE_SOUNDS=true
+            DISABLE_NOTIFICATIONS=false
+            USE_SIMPLE_COMMANDS=true
+            echo "Low-end mode enabled"
+            ;;
+        "high-end")
+            # Enable high-end mode
+            DISABLE_SOUNDS=false
+            DISABLE_NOTIFICATIONS=false
+            USE_SIMPLE_COMMANDS=false
+            echo "High-end mode enabled"
+            ;;
         *)
             # Show a menu
-            choice=$(echo -e "Show Network Status\nShow Connection Type\nShow Connection Name\nShow IP Address\nShow Signal Strength\nList WiFi Networks\nConnect to WiFi\nDisconnect from Network\nToggle WiFi\nShow Network Information" | wofi --dmenu --prompt "Network Manager" --style "$HOME/.config/wofi/power-menu.css")
+            choice=$(echo -e "Show Network Status\nShow Connection Type\nShow Connection Name\nShow IP Address\nShow Signal Strength\nList WiFi Networks\nConnect to WiFi\nDisconnect from Network\nToggle WiFi\nShow Network Information\nEnable Low-End Mode\nEnable High-End Mode" | wofi --dmenu --prompt "Network Manager" --style "$HOME/.config/wofi/power-menu.css")
             
             case "$choice" in
                 "Show Network Status")
@@ -293,6 +387,18 @@ main() {
                     ;;
                 "Show Network Information")
                     show_network_info
+                    ;;
+                "Enable Low-End Mode")
+                    DISABLE_SOUNDS=true
+                    DISABLE_NOTIFICATIONS=false
+                    USE_SIMPLE_COMMANDS=true
+                    send_notification "Network Manager" "Low-end mode enabled" "$WIFI_ICON"
+                    ;;
+                "Enable High-End Mode")
+                    DISABLE_SOUNDS=false
+                    DISABLE_NOTIFICATIONS=false
+                    USE_SIMPLE_COMMANDS=false
+                    send_notification "Network Manager" "High-end mode enabled" "$WIFI_ICON"
                     ;;
             esac
             ;;
