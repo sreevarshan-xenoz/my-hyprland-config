@@ -350,4 +350,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Playerctl](https://github.com/altdesktop/playerctl) - The media control tool
 - [Eww](https://github.com/elkowar/eww) - The widget system
 - [Mpvpaper](https://github.com/GhostNaN/mpvpaper) - The video wallpaper tool
-- [Uwufetch](https://github.com/TheDarkBug/uwufetch) - The system information tool 
+- [Uwufetch](https://github.com/TheDarkBug/uwufetch) - The system information tool #   m y - h y p r l a n d - c o n f i g  
+ 
