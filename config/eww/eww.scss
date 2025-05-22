@@ -1,0 +1,121 @@
+/* Anime-themed EWW Styling */
+
+* {
+  all: unset;
+  font-family: "JetBrainsMono Nerd Font", "Noto Sans CJK JP", sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.bar {
+  background-color: rgba(45, 27, 46, 0.8);
+  border-bottom: 2px solid #ff69b4;
+  padding: 0 10px;
+}
+
+.left, .center, .right {
+  padding: 0 10px;
+}
+
+.workspace {
+  padding: 0 5px;
+  color: #f8f0e3;
+  border-bottom: 3px solid transparent;
+}
+
+.workspace:hover {
+  background-color: rgba(255, 105, 180, 0.2);
+  border-radius: 5px;
+}
+
+.workspace:active {
+  background-color: rgba(255, 105, 180, 0.4);
+  border-bottom: 3px solid #ff69b4;
+}
+
+.time {
+  color: #f8f0e3;
+  background-color: rgba(255, 105, 180, 0.3);
+  padding: 0 10px;
+  border-radius: 5px;
+}
+
+.date {
+  color: #f8f0e3;
+  background-color: rgba(255, 20, 147, 0.3);
+  padding: 0 10px;
+  border-radius: 5px;
+}
+
+.weather {
+  color: #f8f0e3;
+  background-color: rgba(135, 206, 235, 0.3);
+  padding: 0 10px;
+  border-radius: 5px;
+}
+
+.battery {
+  color: #f8f0e3;
+  background-color: rgba(255, 20, 147, 0.3);
+  padding: 0 10px;
+  border-radius: 5px;
+}
+
+.volume {
+  color: #f8f0e3;
+  background-color: rgba(255, 105, 180, 0.3);
+  padding: 0 10px;
+  border-radius: 5px;
+}
+
+.power-button {
+  color: #f8f0e3;
+  background-color: rgba(255, 20, 147, 0.3);
+  padding: 0 10px;
+  border-radius: 5px;
+}
+
+.power-button:hover {
+  background-color: rgba(255, 20, 147, 0.5);
+}
+
+/* Workspace colors */
+.workspace:nth-child(1) {
+  color: #ff69b4;
+}
+
+.workspace:nth-child(2) {
+  color: #ff1493;
+}
+
+.workspace:nth-child(3) {
+  color: #ffb6c1;
+}
+
+.workspace:nth-child(4) {
+  color: #87ceeb;
+}
+
+.workspace:nth-child(5) {
+  color: #da70d6;
+}
+
+.workspace:nth-child(6) {
+  color: #ff69b4;
+}
+
+.workspace:nth-child(7) {
+  color: #ff1493;
+}
+
+.workspace:nth-child(8) {
+  color: #ffb6c1;
+}
+
+.workspace:nth-child(9) {
+  color: #87ceeb;
+}
+
+.workspace:nth-child(10) {
+  color: #da70d6;
+} 

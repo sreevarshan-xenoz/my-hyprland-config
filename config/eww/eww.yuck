@@ -1,0 +1,91 @@
+;; Anime-themed EWW Widget Configuration
+
+(defvar workspaces
+  (map (lambda (i)
+         (let ((n (+ i 1)))
+           `(button
+             :class "workspace"
+             :onclick ,(format "hyprctl dispatch workspace %d" n)
+             (label :text ,(format "%d" n)))))
+       (range 10)))
+
+(defvar time
+  (label
+   :class "time"
+   :text {time("%H:%M")}))
+
+(defvar date
+  (label
+   :class "date"
+   :text {time("%Y-%m-%d")}))
+
+(defvar weather
+  (label
+   :class "weather"
+   :text {exec("~/.config/hypr/scripts/weather.sh")}))
+
+(defvar battery
+  (label
+   :class "battery"
+   :text {battery("BAT0", "%percentage%%")}))
+
+(defvar volume
+  (label
+   :class "volume"
+   :text {volume("Master", "%percentage%%")}))
+
+(defvar power-button
+  (button
+   :class "power-button"
+   :onclick "~/.config/hypr/scripts/power-menu.sh"
+   (label :text "⏻")))
+
+(defvar bar
+  (box
+   :class "bar"
+   :orientation "h"
+   :space-evenly false
+   :halign "start"
+   :valign "center"
+   :spacing 10
+   (box
+    :class "left"
+    :orientation "h"
+    :spacing 10
+    workspaces)
+   (box
+    :class "center"
+    :orientation "h"
+    :spacing 10
+    weather
+    time)
+   (box
+    :class "right"
+    :orientation "h"
+    :spacing 10
+    volume
+    battery
+    date
+    power-button)))
+
+(defvar window
+  (box
+   :class "window"
+   :orientation "v"
+   :spacing 10
+   bar))
+
+(defvar main-window
+  (window
+   :name "bar"
+   :monitor 0
+   :geometry (geometry
+              :x 0
+              :y 0
+              :width "100%"
+              :height 30)
+   :stacking "fg"
+   :reserve (reserve
+             :side "top"
+             :distance 30)
+   window)) 
