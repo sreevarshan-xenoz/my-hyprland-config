@@ -1,0 +1,118 @@
+/* Anime-themed Power Menu Styling */
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Noto Sans CJK JP", sans-serif;
+    font-size: 14px;
+}
+
+window {
+    background-color: rgba(45, 27, 46, 0.9);
+    border: 2px solid #ff69b4;
+    border-radius: 10px;
+}
+
+#input {
+    margin: 5px;
+    border-radius: 5px;
+    border: none;
+    color: #f8f0e3;
+    background-color: rgba(255, 105, 180, 0.2);
+}
+
+#inner-box {
+    margin: 5px;
+    border: none;
+    background-color: transparent;
+}
+
+#outer-box {
+    margin: 5px;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0px;
+    border: none;
+}
+
+#text {
+    margin: 5px;
+    border: none;
+    color: #f8f0e3;
+}
+
+#entry {
+    margin: 5px;
+    border: none;
+    background-color: transparent;
+}
+
+#entry:selected {
+    background-color: rgba(255, 105, 180, 0.4);
+    border-radius: 5px;
+}
+
+#text:selected {
+    color: #f8f0e3;
+    font-weight: bold;
+}
+
+#prompt {
+    margin: 5px;
+    color: #ff69b4;
+    font-weight: bold;
+}
+
+#input prompt {
+    color: #ff69b4;
+    font-weight: bold;
+}
+
+/* Custom styling for power menu options */
+#entry:nth-child(1) {
+    color: #ff69b4;
+}
+
+#entry:nth-child(2) {
+    color: #ff1493;
+}
+
+#entry:nth-child(3) {
+    color: #ffb6c1;
+}
+
+#entry:nth-child(4) {
+    color: #87ceeb;
+}
+
+#entry:nth-child(5) {
+    color: #da70d6;
+}
+
+#entry:nth-child(6) {
+    color: #ff69b4;
+}
+
+/* Hover effects */
+#entry:hover {
+    background-color: rgba(255, 105, 180, 0.2);
+    border-radius: 5px;
+}
+
+/* Animation for selected entry */
+@keyframes pulse {
+    0% {
+        background-color: rgba(255, 105, 180, 0.4);
+    }
+    50% {
+        background-color: rgba(255, 105, 180, 0.6);
+    }
+    100% {
+        background-color: rgba(255, 105, 180, 0.4);
+    }
+}
+
+#entry:selected {
+    animation: pulse 1.5s infinite;
+} 

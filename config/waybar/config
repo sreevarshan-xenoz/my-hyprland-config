@@ -1,0 +1,151 @@
+{
+    // Anime-themed Waybar Configuration
+    "height": 30,
+    "spacing": 4,
+    "margin-top": 5,
+    "margin-bottom": 5,
+    "margin-left": 5,
+    "margin-right": 5,
+    
+    // Anime-style rounded corners
+    "layer": "top",
+    "position": "top",
+    
+    // Modules
+    "modules-left": [
+        "hyprland/workspaces",
+        "hyprland/window",
+        "custom/separator"
+    ],
+    "modules-center": [
+        "custom/weather",
+        "custom/clock"
+    ],
+    "modules-right": [
+        "pulseaudio",
+        "network",
+        "cpu",
+        "memory",
+        "temperature",
+        "battery",
+        "clock",
+        "tray",
+        "custom/power"
+    ],
+    
+    // Module-specific settings
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "on-click": "activate",
+        "on-scroll-up": "hyprctl dispatch workspace e+1",
+        "on-scroll-down": "hyprctl dispatch workspace e-1",
+        "sort-by-number": true,
+        "persistent_workspaces": {
+            "1": {},
+            "2": {},
+            "3": {},
+            "4": {},
+            "5": {},
+            "6": {},
+            "7": {},
+            "8": {},
+            "9": {},
+            "10": {}
+        }
+    },
+    
+    "hyprland/window": {
+        "format": "{}",
+        "separate-outputs": true,
+        "max-length": 50
+    },
+    
+    "custom/separator": {
+        "format": " ",
+        "tooltip": false
+    },
+    
+    "custom/weather": {
+        "format": "{}",
+        "tooltip-format": "{}",
+        "interval": 1800,
+        "exec": "~/.config/waybar/scripts/weather.sh",
+        "return-type": "json"
+    },
+    
+    "custom/clock": {
+        "format": "{}",
+        "tooltip-format": "{}",
+        "interval": 1,
+        "exec": "~/.config/waybar/scripts/clock.sh",
+        "return-type": "json"
+    },
+    
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "🔇",
+        "format-icons": {
+            "headphone": "🎧",
+            "hands-free": "🎧",
+            "headset": "🎧",
+            "phone": "📱",
+            "portable": "📱",
+            "car": "🚗",
+            "default": ["🔈", "🔉", "🔊"]
+        },
+        "on-click": "pavucontrol"
+    },
+    
+    "network": {
+        "format-wifi": "📶 {essid} ({signalStrength}%)",
+        "format-ethernet": "🌐 {ipaddr}/{cidr}",
+        "format-linked": "🌐 {ifname} (No IP)",
+        "format-disconnected": "⚠️ Disconnected",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}"
+    },
+    
+    "cpu": {
+        "format": "🧠 {usage}%",
+        "tooltip-format": "CPU: {usage}%"
+    },
+    
+    "memory": {
+        "format": "💾 {percentage}%",
+        "tooltip-format": "Memory: {used:0.1f}GB/{total:0.1f}GB"
+    },
+    
+    "temperature": {
+        "critical-threshold": 80,
+        "format": "🌡️ {icon} {temperatureC}°C",
+        "format-icons": ["❄️", "🌡️", "🔥"]
+    },
+    
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-charging": "⚡ {capacity}%",
+        "format-plugged": "🔌 {capacity}%",
+        "format-alt": "{time} {icon}",
+        "format-icons": ["🔋", "🔋", "🔋", "🔋", "🔋"]
+    },
+    
+    "clock": {
+        "format": "🕒 {:%H:%M}",
+        "format-alt": "📅 {:%Y-%m-%d}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+    
+    "tray": {
+        "icon-size": 18,
+        "spacing": 10
+    },
+    
+    "custom/power": {
+        "format": "⏻",
+        "tooltip": false,
+        "on-click": "~/.config/waybar/scripts/power-menu.sh"
+    }
+} 
