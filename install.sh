@@ -118,6 +118,38 @@ make_executable() {
     fi
 }
 
+# Install Iris AI dependencies
+install_iris_dependencies() {
+    print_section "Installing Iris AI dependencies"
+    
+    # Install Python packages
+    install_package "python"
+    install_package "python-pip"
+    install_package "jq"
+    
+    # Install Python dependencies
+    pip3 install --user transformers torch accelerate sentencepiece protobuf psutil
+    
+    print_success "Installed Iris AI dependencies"
+}
+
+# Copy Iris AI files
+copy_iris_files() {
+    print_section "Copying Iris AI files"
+    
+    # Create Iris configuration directory
+    create_directory "$HOME/.config/iris"
+    
+    # Copy Iris scripts
+    copy_file "scripts/iris-ai.sh" "$HOME/.config/hypr/scripts/"
+    copy_file "scripts/iris_os_control.py" "$HOME/.config/hypr/scripts/"
+    
+    # Make Iris scripts executable
+    make_executable "$HOME/.config/hypr/scripts/iris-ai.sh"
+    
+    print_success "Copied Iris AI files"
+}
+
 # Main installation function
 main() {
     print_header
@@ -247,12 +279,21 @@ main() {
     curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/icons/game-mode.png" -o "$HOME/.config/hypr/icons/game-mode.png"
     print_success "Downloaded sample anime icons"
     
+    # Install Iris AI
+    print_section "Installing Iris AI Assistant"
+    install_iris_dependencies
+    copy_iris_files
+    
     # Final message
     print_section "Installation complete"
     print_success "Hyprland anime ricing setup is now installed!"
     print_info "You can start Hyprland by logging out and selecting Hyprland from your display manager"
     print_info "Or by running 'Hyprland' from your terminal"
     print_info "Enjoy your anime-themed desktop!"
+    echo -e "${YELLOW}To set up Iris AI Assistant, run:${NC}"
+    echo -e "${GREEN}~/.config/hypr/scripts/iris-ai.sh setup${NC}"
+    echo -e "${YELLOW}To start Iris AI Assistant, run:${NC}"
+    echo -e "${GREEN}~/.config/hypr/scripts/iris-ai.sh start${NC}"
 }
 
 # Run the main function
