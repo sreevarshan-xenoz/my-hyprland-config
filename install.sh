@@ -60,7 +60,7 @@ install_packages() {
         sudo pacman -S --noconfirm git nodejs npm python python-pip
         
         # Splash screen dependencies
-        sudo pacman -S --noconfirm mpv swww feh imagemagick ffmpeg
+        sudo pacman -S --noconfirm mpv swww feh imagemagick ffmpeg bc
         
         # Iris AI dependencies
         sudo pacman -S --noconfirm python-pip jq
@@ -120,7 +120,7 @@ install_packages() {
         sudo apt install -y git nodejs npm python3 python3-pip
         
         # Splash screen dependencies
-        sudo apt install -y mpv swww feh imagemagick ffmpeg
+        sudo apt install -y mpv swww feh imagemagick ffmpeg bc
         
         # Iris AI dependencies
         sudo apt install -y python3-pip jq
@@ -269,6 +269,9 @@ setup_splash_screen() {
     mkdir -p "$HOME/.local/bin"
     ln -sf "$HOME/.config/hypr/scripts/anime-splash.sh" "$HOME/.local/bin/hypr-splash"
     
+    # Create a symlink for the splash selection script
+    ln -sf "$HOME/.config/hypr/scripts/anime-splash.sh" "$HOME/.local/bin/hypr-splash-select"
+    
     print_message "$GREEN" "Splash screen setup complete!"
 }
 
@@ -279,7 +282,7 @@ create_splash_desktop_entry() {
     # Create desktop entry directory
     mkdir -p "$HOME/.local/share/applications"
     
-    # Create desktop entry
+    # Create desktop entry for splash screen
     cat > "$HOME/.local/share/applications/hypr-splash.desktop" << EOF
 [Desktop Entry]
 Name=Hyprland Anime Splash
@@ -291,7 +294,19 @@ Categories=Utility;
 Icon=hyprland
 EOF
     
-    print_message "$GREEN" "Desktop entry created!"
+    # Create desktop entry for splash screen selection
+    cat > "$HOME/.local/share/applications/hypr-splash-select.desktop" << EOF
+[Desktop Entry]
+Name=Hyprland Splash Screen Selector
+Comment=Configure your Hyprland splash screen
+Exec=$HOME/.local/bin/hypr-splash-select select
+Terminal=false
+Type=Application
+Categories=Settings;Utility;
+Icon=hyprland
+EOF
+    
+    print_message "$GREEN" "Desktop entries created!"
 }
 
 # Function to create a desktop entry for Hyprland with splash screen
@@ -528,6 +543,10 @@ main() {
     print_message "$GREEN" "2. Run 'startx' from a terminal"
     print_message "$GREEN" "3. Run 'systemctl --user start hyprland.service'"
     print_message "$GREEN" "4. Run 'hypr-splash && Hyprland' from a terminal"
+    print_message "$GREEN" ""
+    print_message "$GREEN" "To configure your splash screen, run:"
+    print_message "$GREEN" "hypr-splash-select"
+    print_message "$GREEN" "Or select 'Hyprland Splash Screen Selector' from your applications menu"
     print_message "$GREEN" ""
     print_message "$GREEN" "To set up Iris AI Assistant, run:"
     print_message "$GREEN" "~/.config/hypr/scripts/iris-ai.sh setup"
