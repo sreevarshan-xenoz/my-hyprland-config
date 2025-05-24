@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Hyprland Anime Ricing Installation Script
-# ----------------------------------------
-# This script installs and configures the Hyprland anime ricing setup
+# install.sh - Installation script for Hyprland Anime Ricing - Ultimate Edition
+# https://github.com/sreevarshan-xenoz/my-hyprland-config
 
 # Colors for output
 RED='\033[0;31m'
@@ -13,288 +12,533 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Print a header
-print_header() {
-    echo -e "${PURPLE}========================================${NC}"
-    echo -e "${PURPLE}  Hyprland Anime Ricing Installation  ${NC}"
-    echo -e "${PURPLE}========================================${NC}"
-    echo ""
+# Function to print colored messages
+print_message() {
+    local color=$1
+    local message=$2
+    echo -e "${color}${message}${NC}"
 }
 
-# Print a section header
-print_section() {
-    echo -e "${CYAN}==>${NC} ${YELLOW}$1${NC}"
-}
-
-# Print a success message
-print_success() {
-    echo -e "${GREEN}==>${NC} $1"
-}
-
-# Print an error message
-print_error() {
-    echo -e "${RED}==>${NC} $1"
-}
-
-# Print an info message
-print_info() {
-    echo -e "${BLUE}==>${NC} $1"
-}
-
-# Check if a command exists
+# Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Check if a package is installed
-package_installed() {
-    pacman -Q "$1" >/dev/null 2>&1
-}
-
-# Install a package if it's not already installed
-install_package() {
-    if ! package_installed "$1"; then
-        print_info "Installing $1..."
-        sudo pacman -S --noconfirm "$1"
-        if [ $? -eq 0 ]; then
-            print_success "Installed $1"
+# Function to install required packages
+install_packages() {
+    print_message "$BLUE" "Installing required packages..."
+    
+    # Check if pacman is available (Arch Linux)
+    if command_exists "pacman"; then
+        # Core packages
+        sudo pacman -S --noconfirm hyprland hyprpaper hyprlock hypridle hyprpicker
+        sudo pacman -S --noconfirm waybar eww-wayland wofi rofi-wayland
+        sudo pacman -S --noconfirm dunst mako pipewire pipewire-pulse pavucontrol
+        sudo pacman -S --noconfirm foot kitty alacritty wezterm
+        sudo pacman -S --noconfirm thunar nemo dolphin ranger lf
+        sudo pacman -S --noconfirm grim slurp wl-clipboard swappy
+        sudo pacman -S --noconfirm brightnessctl playerctl bluetuith
+        
+        # Theming packages
+        sudo pacman -S --noconfirm papirus-icon-theme candy-icons
+        sudo pacman -S --noconfirm bibata-cursor-theme catppuccin-cursors
+        sudo pacman -S --noconfirm ttf-jetbrains-mono-nerd ttf-fira-code-nerd
+        sudo pacman -S --noconfirm noto-fonts-cjk noto-fonts-emoji
+        sudo pacman -S --noconfirm ttf-ms-fonts adobe-source-han-sans-jp-fonts
+        sudo pacman -S --noconfirm pywal-git colorz python-colorthief
+        sudo pacman -S --noconfirm lxappearance qt5ct kvantum
+        sudo pacman -S --noconfirm catppuccin-gtk-theme-mocha
+        
+        # Animation and effects
+        sudo pacman -S --noconfirm glfw-wayland cairo pango
+        sudo pacman -S --noconfirm librsvg gdk-pixbuf2 webp-pixbuf-loader
+        sudo pacman -S --noconfirm cava cli-visualizer glava
+        sudo pacman -S --noconfirm mpvpaper swww hyprpaper
+        sudo pacman -S --noconfirm ffmpeg imagemagick gifski
+        
+        # Optional enhancement packages
+        sudo pacman -S --noconfirm git nodejs npm python python-pip
+        
+        # Splash screen dependencies
+        sudo pacman -S --noconfirm mpv swww feh imagemagick ffmpeg
+        
+        # Iris AI dependencies
+        sudo pacman -S --noconfirm python-pip jq
+        
+        # Check if yay is available for AUR packages
+        if command_exists "yay"; then
+            print_message "$BLUE" "Installing AUR packages with yay..."
+            yay -S --noconfirm swww-git hyprpicker-git eww-wayland
+            yay -S --noconfirm cava-git cli-visualizer-git
+            yay -S --noconfirm anime-wallpaper-cli waifu2x-ncnn-vulkan
+            yay -S --noconfirm plymouth-theme-anime spicetify-cli
+            yay -S --noconfirm zscroll-git picom-animations-git
+        # Check if paru is available for AUR packages
+        elif command_exists "paru"; then
+            print_message "$BLUE" "Installing AUR packages with paru..."
+            paru -S --noconfirm swww-git hyprpicker-git eww-wayland
+            paru -S --noconfirm cava-git cli-visualizer-git
+            paru -S --noconfirm anime-wallpaper-cli waifu2x-ncnn-vulkan
+            paru -S --noconfirm plymouth-theme-anime spicetify-cli
+            paru -S --noconfirm zscroll-git picom-animations-git
         else
-            print_error "Failed to install $1"
-            exit 1
+            print_message "$YELLOW" "Neither yay nor paru found. Skipping AUR packages."
+            print_message "$YELLOW" "You may want to install yay or paru to get AUR packages."
         fi
+    # Check if apt is available (Debian/Ubuntu)
+    elif command_exists "apt"; then
+        print_message "$YELLOW" "Debian/Ubuntu detected. Some packages may not be available."
+        print_message "$YELLOW" "You may need to install some packages manually."
+        
+        # Core packages
+        sudo apt update
+        sudo apt install -y hyprland hyprpaper hyprlock hypridle hyprpicker
+        sudo apt install -y waybar eww-wayland wofi rofi
+        sudo apt install -y dunst mako pipewire pipewire-pulse pavucontrol
+        sudo apt install -y foot kitty alacritty wezterm
+        sudo apt install -y thunar nemo dolphin ranger lf
+        sudo apt install -y grim slurp wl-clipboard swappy
+        sudo apt install -y brightnessctl playerctl bluetuith
+        
+        # Theming packages
+        sudo apt install -y papirus-icon-theme
+        sudo apt install -y bibata-cursor-theme
+        sudo apt install -y fonts-jetbrains-mono fonts-firacode
+        sudo apt install -y fonts-noto-cjk fonts-noto-color-emoji
+        sudo apt install -y fonts-mscorefonts-installer
+        sudo apt install -y python3-pip python3-colorthief
+        sudo apt install -y lxappearance qt5ct kvantum
+        
+        # Animation and effects
+        sudo apt install -y libglfw3-dev libcairo2-dev libpango1.0-dev
+        sudo apt install -y librsvg2-dev libgdk-pixbuf2.0-dev
+        sudo apt install -y cava cli-visualizer
+        sudo apt install -y mpv swww
+        sudo apt install -y ffmpeg imagemagick
+        
+        # Optional enhancement packages
+        sudo apt install -y git nodejs npm python3 python3-pip
+        
+        # Splash screen dependencies
+        sudo apt install -y mpv swww feh imagemagick ffmpeg
+        
+        # Iris AI dependencies
+        sudo apt install -y python3-pip jq
     else
-        print_info "$1 is already installed"
+        print_message "$RED" "Unsupported package manager. Please install packages manually."
+        return 1
     fi
+    
+    print_message "$GREEN" "Package installation complete!"
 }
 
-# Install packages from AUR
-install_aur_package() {
-    if ! package_installed "$1"; then
-        print_info "Installing $1 from AUR..."
-        yay -S --noconfirm "$1"
-        if [ $? -eq 0 ]; then
-            print_success "Installed $1 from AUR"
-        else
-            print_error "Failed to install $1 from AUR"
-            exit 1
-        fi
-    else
-        print_info "$1 is already installed"
-    fi
-}
-
-# Create a directory if it doesn't exist
-create_directory() {
-    if [ ! -d "$1" ]; then
-        print_info "Creating directory $1..."
-        mkdir -p "$1"
-        print_success "Created directory $1"
-    else
-        print_info "Directory $1 already exists"
-    fi
-}
-
-# Copy a file
-copy_file() {
-    print_info "Copying $1 to $2..."
-    cp "$1" "$2"
-    if [ $? -eq 0 ]; then
-        print_success "Copied $1 to $2"
-    else
-        print_error "Failed to copy $1 to $2"
-        exit 1
-    fi
-}
-
-# Make a file executable
-make_executable() {
-    print_info "Making $1 executable..."
-    chmod +x "$1"
-    if [ $? -eq 0 ]; then
-        print_success "Made $1 executable"
-    else
-        print_error "Failed to make $1 executable"
-        exit 1
-    fi
-}
-
-# Install Iris AI dependencies
+# Function to install Iris AI dependencies
 install_iris_dependencies() {
-    print_section "Installing Iris AI dependencies"
+    print_message "$BLUE" "Installing Iris AI dependencies..."
     
     # Install Python packages
-    install_package "python"
-    install_package "python-pip"
-    install_package "jq"
+    pip3 install --user transformers torch accelerate sentencepiece protobuf
+    pip3 install --user SpeechRecognition gTTS pygame numpy sounddevice
     
-    # Install Python dependencies
-    pip3 install --user transformers torch accelerate sentencepiece protobuf psutil
-    
-    print_success "Installed Iris AI dependencies"
+    print_message "$GREEN" "Iris AI dependencies installed!"
 }
 
-# Copy Iris AI files
+# Function to copy configuration files
+copy_config_files() {
+    print_message "$BLUE" "Copying configuration files..."
+    
+    # Create config directories
+    mkdir -p "$HOME/.config/hypr"
+    mkdir -p "$HOME/.config/waybar"
+    mkdir -p "$HOME/.config/eww"
+    mkdir -p "$HOME/.config/wofi"
+    mkdir -p "$HOME/.config/dunst"
+    mkdir -p "$HOME/.config/kitty"
+    mkdir -p "$HOME/.config/foot"
+    mkdir -p "$HOME/.config/alacritty"
+    mkdir -p "$HOME/.config/wezterm"
+    mkdir -p "$HOME/.config/gtk-3.0"
+    mkdir -p "$HOME/.config/qt5ct"
+    mkdir -p "$HOME/.config/kvantum"
+    mkdir -p "$HOME/.config/iris"
+    mkdir -p "$HOME/.config/hypr/splash"
+    mkdir -p "$HOME/.config/hypr/themes"
+    
+    # Copy Hyprland config
+    cp -r config/hypr/* "$HOME/.config/hypr/"
+    
+    # Copy Waybar config
+    cp -r config/waybar/* "$HOME/.config/waybar/"
+    
+    # Copy EWW config
+    cp -r config/eww/* "$HOME/.config/eww/"
+    
+    # Copy Wofi config
+    cp -r config/wofi/* "$HOME/.config/wofi/"
+    
+    # Copy Dunst config
+    cp -r config/dunst/* "$HOME/.config/dunst/"
+    
+    # Copy terminal configs
+    cp -r config/kitty/* "$HOME/.config/kitty/"
+    cp -r config/foot/* "$HOME/.config/foot/"
+    cp -r config/alacritty/* "$HOME/.config/alacritty/"
+    cp -r config/wezterm/* "$HOME/.config/wezterm/"
+    
+    # Copy GTK/Qt configs
+    cp -r config/gtk-3.0/* "$HOME/.config/gtk-3.0/"
+    cp -r config/qt5ct/* "$HOME/.config/qt5ct/"
+    cp -r config/kvantum/* "$HOME/.config/kvantum/"
+    
+    # Copy themes
+    cp -r themes/* "$HOME/.config/hypr/themes/"
+    
+    # Copy wallpapers
+    mkdir -p "$HOME/.config/hypr/wallpapers"
+    cp -r wallpapers/* "$HOME/.config/hypr/wallpapers/"
+    
+    # Copy sounds
+    mkdir -p "$HOME/.config/hypr/sounds"
+    cp -r sounds/* "$HOME/.config/hypr/sounds/"
+    
+    # Copy icons
+    mkdir -p "$HOME/.config/hypr/icons"
+    cp -r icons/* "$HOME/.config/hypr/icons/"
+    
+    # Copy fonts
+    mkdir -p "$HOME/.local/share/fonts"
+    cp -r fonts/* "$HOME/.local/share/fonts/"
+    fc-cache -f -v
+    
+    print_message "$GREEN" "Configuration files copied!"
+}
+
+# Function to copy scripts
+copy_scripts() {
+    print_message "$BLUE" "Copying scripts..."
+    
+    # Create scripts directory
+    mkdir -p "$HOME/.config/hypr/scripts"
+    
+    # Copy scripts
+    cp -r scripts/* "$HOME/.config/hypr/scripts/"
+    
+    # Make scripts executable
+    chmod +x "$HOME/.config/hypr/scripts/"*.sh
+    
+    print_message "$GREEN" "Scripts copied and made executable!"
+}
+
+# Function to copy Iris AI files
 copy_iris_files() {
-    print_section "Copying Iris AI files"
+    print_message "$BLUE" "Copying Iris AI files..."
     
-    # Create Iris configuration directory
-    create_directory "$HOME/.config/iris"
+    # Create Iris config directory
+    mkdir -p "$HOME/.config/iris"
     
-    # Copy Iris scripts
-    copy_file "scripts/iris-ai.sh" "$HOME/.config/hypr/scripts/"
-    copy_file "scripts/iris_os_control.py" "$HOME/.config/hypr/scripts/"
+    # Copy Iris AI scripts
+    cp scripts/iris-ai.sh "$HOME/.config/hypr/scripts/"
+    cp scripts/iris_os_control.py "$HOME/.config/hypr/scripts/"
+    cp scripts/iris_voice.py "$HOME/.config/hypr/scripts/"
     
-    # Make Iris scripts executable
-    make_executable "$HOME/.config/hypr/scripts/iris-ai.sh"
+    # Make Iris AI script executable
+    chmod +x "$HOME/.config/hypr/scripts/iris-ai.sh"
     
-    print_success "Copied Iris AI files"
+    print_message "$GREEN" "Iris AI files copied!"
 }
 
-# Main installation function
+# Function to setup splash screen
+setup_splash_screen() {
+    print_message "$BLUE" "Setting up splash screen..."
+    
+    # Create splash directory
+    mkdir -p "$HOME/.config/hypr/splash"
+    
+    # Copy splash scripts
+    cp scripts/anime-splash.sh "$HOME/.config/hypr/scripts/"
+    cp scripts/create-splash-image.sh "$HOME/.config/hypr/scripts/"
+    
+    # Make splash scripts executable
+    chmod +x "$HOME/.config/hypr/scripts/anime-splash.sh"
+    chmod +x "$HOME/.config/hypr/scripts/create-splash-image.sh"
+    
+    # Create splash images
+    "$HOME/.config/hypr/scripts/create-splash-image.sh"
+    
+    # Create a symlink to the splash script in the user's bin directory
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$HOME/.config/hypr/scripts/anime-splash.sh" "$HOME/.local/bin/hypr-splash"
+    
+    print_message "$GREEN" "Splash screen setup complete!"
+}
+
+# Function to create a desktop entry for the splash screen
+create_splash_desktop_entry() {
+    print_message "$BLUE" "Creating desktop entry for splash screen..."
+    
+    # Create desktop entry directory
+    mkdir -p "$HOME/.local/share/applications"
+    
+    # Create desktop entry
+    cat > "$HOME/.local/share/applications/hypr-splash.desktop" << EOF
+[Desktop Entry]
+Name=Hyprland Anime Splash
+Comment=Anime-themed splash screen for Hyprland
+Exec=$HOME/.local/bin/hypr-splash
+Terminal=false
+Type=Application
+Categories=Utility;
+Icon=hyprland
+EOF
+    
+    print_message "$GREEN" "Desktop entry created!"
+}
+
+# Function to create a desktop entry for Hyprland with splash screen
+create_hyprland_desktop_entry() {
+    print_message "$BLUE" "Creating desktop entry for Hyprland with splash screen..."
+    
+    # Create desktop entry directory
+    mkdir -p "$HOME/.local/share/applications"
+    
+    # Create desktop entry
+    cat > "$HOME/.local/share/applications/hyprland-anime.desktop" << EOF
+[Desktop Entry]
+Name=Hyprland Anime
+Comment=Hyprland Anime Ricing - Ultimate Edition
+Exec=$HOME/.local/bin/hypr-splash && Hyprland
+Terminal=false
+Type=Application
+Categories=System;
+Icon=hyprland
+EOF
+    
+    print_message "$GREEN" "Hyprland desktop entry created!"
+}
+
+# Function to create a .xinitrc file
+create_xinitrc() {
+    print_message "$BLUE" "Creating .xinitrc file..."
+    
+    # Create .xinitrc file
+    cat > "$HOME/.xinitrc" << EOF
+#!/bin/bash
+
+# Start Hyprland with splash screen
+$HOME/.local/bin/hypr-splash && exec Hyprland
+EOF
+    
+    # Make .xinitrc executable
+    chmod +x "$HOME/.xinitrc"
+    
+    print_message "$GREEN" ".xinitrc file created!"
+}
+
+# Function to create a .xsession file
+create_xsession() {
+    print_message "$BLUE" "Creating .xsession file..."
+    
+    # Create .xsession file
+    cat > "$HOME/.xsession" << EOF
+#!/bin/bash
+
+# Start Hyprland with splash screen
+$HOME/.local/bin/hypr-splash && exec Hyprland
+EOF
+    
+    # Make .xsession executable
+    chmod +x "$HOME/.xsession"
+    
+    print_message "$GREEN" ".xsession file created!"
+}
+
+# Function to create a display manager configuration
+create_display_manager_config() {
+    print_message "$BLUE" "Creating display manager configuration..."
+    
+    # Check if SDDM is installed
+    if command_exists "sddm"; then
+        print_message "$BLUE" "SDDM detected. Creating SDDM configuration..."
+        
+        # Create SDDM config directory
+        sudo mkdir -p /etc/sddm.conf.d/
+        
+        # Create SDDM config
+        sudo cat > /etc/sddm.conf.d/hyprland.conf << EOF
+[Autologin]
+User=$USER
+Session=hyprland-anime.desktop
+
+[General]
+DisplayServer=wayland
+GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell
+
+[Theme]
+Current=anime
+EOF
+        
+        print_message "$GREEN" "SDDM configuration created!"
+    # Check if LightDM is installed
+    elif command_exists "lightdm"; then
+        print_message "$BLUE" "LightDM detected. Creating LightDM configuration..."
+        
+        # Create LightDM config
+        sudo cat > /etc/lightdm/lightdm.conf.d/hyprland.conf << EOF
+[Seat:*]
+autologin-user=$USER
+autologin-user-timeout=0
+session-wrapper=/etc/lightdm/Xsession
+EOF
+        
+        print_message "$GREEN" "LightDM configuration created!"
+    # Check if GDM is installed
+    elif command_exists "gdm"; then
+        print_message "$BLUE" "GDM detected. Creating GDM configuration..."
+        
+        # Create GDM config
+        sudo cat > /etc/gdm/custom.conf << EOF
+[daemon]
+AutomaticLogin=$USER
+AutomaticLoginEnable=true
+DefaultSession=hyprland-anime.desktop
+EOF
+        
+        print_message "$GREEN" "GDM configuration created!"
+    else
+        print_message "$YELLOW" "No supported display manager detected. Skipping display manager configuration."
+    fi
+}
+
+# Function to create a systemd service for the splash screen
+create_splash_service() {
+    print_message "$BLUE" "Creating systemd service for splash screen..."
+    
+    # Create systemd user directory
+    mkdir -p "$HOME/.config/systemd/user/"
+    
+    # Create service file
+    cat > "$HOME/.config/systemd/user/hypr-splash.service" << EOF
+[Unit]
+Description=Hyprland Anime Splash Screen
+Before=hyprland.service
+After=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=$HOME/.local/bin/hypr-splash
+RemainAfterExit=yes
+
+[Install]
+WantedBy=hyprland.service
+EOF
+    
+    # Enable the service
+    systemctl --user enable hypr-splash.service
+    
+    print_message "$GREEN" "Splash screen service created and enabled!"
+}
+
+# Function to create a systemd service for Hyprland
+create_hyprland_service() {
+    print_message "$BLUE" "Creating systemd service for Hyprland..."
+    
+    # Create systemd user directory
+    mkdir -p "$HOME/.config/systemd/user/"
+    
+    # Create service file
+    cat > "$HOME/.config/systemd/user/hyprland.service" << EOF
+[Unit]
+Description=Hyprland Wayland Compositor
+After=hypr-splash.service
+Requires=hypr-splash.service
+
+[Service]
+Type=simple
+ExecStart=Hyprland
+Restart=on-failure
+RestartSec=1
+TimeoutStopSec=10
+
+[Install]
+WantedBy=graphical.target
+EOF
+    
+    # Enable the service
+    systemctl --user enable hyprland.service
+    
+    print_message "$GREEN" "Hyprland service created and enabled!"
+}
+
+# Main function
 main() {
-    print_header
+    print_message "$PURPLE" "=== Hyprland Anime Ricing - Ultimate Edition Installation ==="
     
     # Check if running as root
     if [ "$EUID" -eq 0 ]; then
-        print_error "Please do not run this script as root"
+        print_message "$RED" "Please do not run this script as root."
         exit 1
     fi
     
-    # Check if running on Arch Linux
-    if ! command_exists pacman; then
-        print_error "This script is designed for Arch Linux"
-        exit 1
+    # Check if running on a supported system
+    if ! command_exists "hyprland"; then
+        print_message "$YELLOW" "Hyprland not found. This script is designed for systems with Hyprland."
+        read -p "Do you want to continue anyway? (y/n) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
     fi
     
-    # Check if yay is installed
-    if ! command_exists yay; then
-        print_info "Installing yay..."
-        sudo pacman -S --needed --noconfirm git base-devel
-        git clone https://aur.archlinux.org/yay.git /tmp/yay
-        cd /tmp/yay
-        makepkg -si --noconfirm
-        cd - > /dev/null
-        print_success "Installed yay"
-    fi
+    # Install packages
+    install_packages
     
-    # Install required packages
-    print_section "Installing required packages"
-    
-    # Core packages
-    install_package "hyprland"
-    install_package "waybar"
-    install_package "wofi"
-    install_package "dunst"
-    install_package "swww"
-    install_package "pywal"
-    install_package "grim"
-    install_package "slurp"
-    install_package "wl-clipboard"
-    install_package "pavucontrol"
-    install_package "brightnessctl"
-    install_package "playerctl"
-    install_package "jq"
-    install_package "curl"
-    install_package "noto-fonts-cjk"
-    install_package "ttf-jetbrains-mono-nerd"
-    install_package "papirus-icon-theme"
-    install_package "bibata-cursor-theme"
-    
-    # AUR packages
-    install_aur_package "eww-wayland"
-    install_aur_package "mpvpaper"
-    install_aur_package "uwufetch"
-    
-    # Create configuration directories
-    print_section "Creating configuration directories"
-    
-    create_directory "$HOME/.config/hypr"
-    create_directory "$HOME/.config/waybar"
-    create_directory "$HOME/.config/wofi"
-    create_directory "$HOME/.config/dunst"
-    create_directory "$HOME/.config/eww"
-    create_directory "$HOME/.config/hypr/wallpapers"
-    create_directory "$HOME/.config/hypr/sounds"
-    create_directory "$HOME/.config/hypr/icons"
-    create_directory "$HOME/.config/hypr/scripts"
+    # Install Iris AI dependencies
+    install_iris_dependencies
     
     # Copy configuration files
-    print_section "Copying configuration files"
-    
-    copy_file "config/hypr/hyprland.conf" "$HOME/.config/hypr/"
-    copy_file "config/hypr/colors.conf" "$HOME/.config/hypr/"
-    copy_file "config/waybar/config" "$HOME/.config/waybar/"
-    copy_file "config/waybar/style.css" "$HOME/.config/waybar/"
-    copy_file "config/wofi/power-menu.css" "$HOME/.config/wofi/"
+    copy_config_files
     
     # Copy scripts
-    print_section "Copying scripts"
+    copy_scripts
     
-    copy_file "scripts/wallpaper-switcher.sh" "$HOME/.config/hypr/scripts/"
-    copy_file "scripts/power-menu.sh" "$HOME/.config/hypr/scripts/"
-    copy_file "scripts/weather.sh" "$HOME/.config/hypr/scripts/"
-    copy_file "scripts/clock.sh" "$HOME/.config/hypr/scripts/"
-    copy_file "scripts/game-mode.sh" "$HOME/.config/hypr/scripts/"
-    
-    # Make scripts executable
-    print_section "Making scripts executable"
-    
-    make_executable "$HOME/.config/hypr/scripts/wallpaper-switcher.sh"
-    make_executable "$HOME/.config/hypr/scripts/power-menu.sh"
-    make_executable "$HOME/.config/hypr/scripts/weather.sh"
-    make_executable "$HOME/.config/hypr/scripts/clock.sh"
-    make_executable "$HOME/.config/hypr/scripts/game-mode.sh"
-    
-    # Download sample wallpapers
-    print_section "Downloading sample wallpapers"
-    
-    print_info "Downloading sample anime wallpapers..."
-    mkdir -p /tmp/anime-wallpapers
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/wallpapers/anime-1.jpg" -o "$HOME/.config/hypr/wallpapers/default.jpg"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/wallpapers/anime-2.jpg" -o "$HOME/.config/hypr/wallpapers/anime-2.jpg"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/wallpapers/anime-3.jpg" -o "$HOME/.config/hypr/wallpapers/anime-3.jpg"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/wallpapers/anime-4.jpg" -o "$HOME/.config/hypr/wallpapers/anime-4.jpg"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/wallpapers/anime-5.jpg" -o "$HOME/.config/hypr/wallpapers/anime-5.jpg"
-    print_success "Downloaded sample anime wallpapers"
-    
-    # Download sample sounds
-    print_section "Downloading sample sounds"
-    
-    print_info "Downloading sample anime sounds..."
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/sounds/startup.wav" -o "$HOME/.config/hypr/sounds/startup.wav"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/sounds/shutdown.wav" -o "$HOME/.config/hypr/sounds/shutdown.wav"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/sounds/reboot.wav" -o "$HOME/.config/hypr/sounds/reboot.wav"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/sounds/logout.wav" -o "$HOME/.config/hypr/sounds/logout.wav"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/sounds/lock.wav" -o "$HOME/.config/hypr/sounds/lock.wav"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/sounds/suspend.wav" -o "$HOME/.config/hypr/sounds/suspend.wav"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/sounds/hibernate.wav" -o "$HOME/.config/hypr/sounds/hibernate.wav"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/sounds/game-mode-on.wav" -o "$HOME/.config/hypr/sounds/game-mode-on.wav"
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/sounds/game-mode-off.wav" -o "$HOME/.config/hypr/sounds/game-mode-off.wav"
-    print_success "Downloaded sample anime sounds"
-    
-    # Download sample icons
-    print_section "Downloading sample icons"
-    
-    print_info "Downloading sample anime icons..."
-    curl -L "https://raw.githubusercontent.com/linuxdotexe/archlinux-hyprland/main/icons/game-mode.png" -o "$HOME/.config/hypr/icons/game-mode.png"
-    print_success "Downloaded sample anime icons"
-    
-    # Install Iris AI
-    print_section "Installing Iris AI Assistant"
-    install_iris_dependencies
+    # Copy Iris AI files
     copy_iris_files
     
-    # Final message
-    print_section "Installation complete"
-    print_success "Hyprland anime ricing setup is now installed!"
-    print_info "You can start Hyprland by logging out and selecting Hyprland from your display manager"
-    print_info "Or by running 'Hyprland' from your terminal"
-    print_info "Enjoy your anime-themed desktop!"
-    echo -e "${YELLOW}To set up Iris AI Assistant, run:${NC}"
-    echo -e "${GREEN}~/.config/hypr/scripts/iris-ai.sh setup${NC}"
-    echo -e "${YELLOW}To start Iris AI Assistant, run:${NC}"
-    echo -e "${GREEN}~/.config/hypr/scripts/iris-ai.sh start${NC}"
+    # Setup splash screen
+    setup_splash_screen
+    
+    # Create desktop entries
+    create_splash_desktop_entry
+    create_hyprland_desktop_entry
+    
+    # Create X session files
+    create_xinitrc
+    create_xsession
+    
+    # Create display manager configuration
+    create_display_manager_config
+    
+    # Create systemd services
+    create_splash_service
+    create_hyprland_service
+    
+    print_message "$GREEN" "=== Installation Complete! ==="
+    print_message "$GREEN" "You can now start Hyprland with the splash screen using one of the following methods:"
+    print_message "$GREEN" "1. Select 'Hyprland Anime' from your display manager"
+    print_message "$GREEN" "2. Run 'startx' from a terminal"
+    print_message "$GREEN" "3. Run 'systemctl --user start hyprland.service'"
+    print_message "$GREEN" "4. Run 'hypr-splash && Hyprland' from a terminal"
+    print_message "$GREEN" ""
+    print_message "$GREEN" "To set up Iris AI Assistant, run:"
+    print_message "$GREEN" "~/.config/hypr/scripts/iris-ai.sh setup"
+    print_message "$GREEN" ""
+    print_message "$GREEN" "To start Iris AI Assistant, run:"
+    print_message "$GREEN" "~/.config/hypr/scripts/iris-ai.sh start"
+    print_message "$GREEN" "Or press Super+I"
 }
 
 # Run the main function
-main 
+main
+
+# Exit with success
+exit 0 
