@@ -85,47 +85,13 @@ install_packages() {
             print_message "$YELLOW" "Neither yay nor paru found. Skipping AUR packages."
             print_message "$YELLOW" "You may want to install yay or paru to get AUR packages."
         fi
-    # Check if apt is available (Debian/Ubuntu)
-    elif command_exists "apt"; then
-        print_message "$YELLOW" "Debian/Ubuntu detected. Some packages may not be available."
-        print_message "$YELLOW" "You may need to install some packages manually."
-        
-        # Core packages
-        sudo apt update
-        sudo apt install -y hyprland hyprpaper hyprlock hypridle hyprpicker
-        sudo apt install -y waybar eww-wayland wofi rofi
-        sudo apt install -y dunst mako pipewire pipewire-pulse pavucontrol
-        sudo apt install -y foot kitty alacritty wezterm
-        sudo apt install -y thunar nemo dolphin ranger lf
-        sudo apt install -y grim slurp wl-clipboard swappy
-        sudo apt install -y brightnessctl playerctl bluetuith
-        
-        # Theming packages
-        sudo apt install -y papirus-icon-theme
-        sudo apt install -y bibata-cursor-theme
-        sudo apt install -y fonts-jetbrains-mono fonts-firacode
-        sudo apt install -y fonts-noto-cjk fonts-noto-color-emoji
-        sudo apt install -y fonts-mscorefonts-installer
-        sudo apt install -y python3-pip python3-colorthief
-        sudo apt install -y lxappearance qt5ct kvantum
-        
-        # Animation and effects
-        sudo apt install -y libglfw3-dev libcairo2-dev libpango1.0-dev
-        sudo apt install -y librsvg2-dev libgdk-pixbuf2.0-dev
-        sudo apt install -y cava cli-visualizer
-        sudo apt install -y mpv swww
-        sudo apt install -y ffmpeg imagemagick
-        
-        # Optional enhancement packages
-        sudo apt install -y git nodejs npm python3 python3-pip
-        
-        # Splash screen dependencies
-        sudo apt install -y mpv swww feh imagemagick ffmpeg bc
-        
-        # Iris AI dependencies
-        sudo apt install -y python3-pip jq
+    # For Arch Linux, we already handled the package installation with pacman/yay/paru above
+    # This section is removed as Arch Linux doesn't use apt
+    # If you're using a different distribution that's not Arch-based, please modify this script
+    # to use your distribution's package manager (e.g., dnf for Fedora, zypper for openSUSE, etc.)
     else
-        print_message "$RED" "Unsupported package manager. Please install packages manually."
+        print_message "$RED" "This script is configured for Arch Linux and requires pacman."
+        print_message "$YELLOW" "Please install the required packages manually using your distribution's package manager."
         return 1
     fi
     
@@ -256,10 +222,12 @@ setup_splash_screen() {
     
     # Copy splash scripts
     cp scripts/anime-splash.sh "$HOME/.config/hypr/scripts/"
+    cp scripts/splash-selector.sh "$HOME/.config/hypr/scripts/"
     cp scripts/create-splash-image.sh "$HOME/.config/hypr/scripts/"
     
     # Make splash scripts executable
     chmod +x "$HOME/.config/hypr/scripts/anime-splash.sh"
+    chmod +x "$HOME/.config/hypr/scripts/splash-selector.sh"
     chmod +x "$HOME/.config/hypr/scripts/create-splash-image.sh"
     
     # Create splash images
@@ -270,7 +238,7 @@ setup_splash_screen() {
     ln -sf "$HOME/.config/hypr/scripts/anime-splash.sh" "$HOME/.local/bin/hypr-splash"
     
     # Create a symlink for the splash selection script
-    ln -sf "$HOME/.config/hypr/scripts/anime-splash.sh" "$HOME/.local/bin/hypr-splash-select"
+    ln -sf "$HOME/.config/hypr/scripts/splash-selector.sh" "$HOME/.local/bin/hypr-splash-select"
     
     print_message "$GREEN" "Splash screen setup complete!"
 }
@@ -299,7 +267,7 @@ EOF
 [Desktop Entry]
 Name=Hyprland Splash Screen Selector
 Comment=Configure your Hyprland splash screen
-Exec=$HOME/.local/bin/hypr-splash-select select
+Exec=$HOME/.local/bin/hypr-splash-select
 Terminal=false
 Type=Application
 Categories=Settings;Utility;
@@ -560,4 +528,4 @@ main() {
 main
 
 # Exit with success
-exit 0 
+exit 0

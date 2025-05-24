@@ -1,19 +1,7 @@
 #!/bin/bash
 
 # anime-splash.sh - Anime-themed splash screen for Hyprland
-# Part of the Hyprland Anime Ricing - Ultimate Edition
-# https://github.com/sreevarshan-xenoz/my-hyprland-config
-
-# Configuration
-SPLASH_DIR="$HOME/.config/hypr/splash"
-SPLASH_VIDEO="$SPLASH_DIR/splash.mp4"
-SPLASH_IMAGE="$SPLASH_DIR/splash.png"
-SPLASH_DURATION=5
-SPLASH_AUDIO=true
-SPLASH_VOLUME=0.3
-SPLASH_FADE=1.0
-SPLASH_THEME="random"  # Options: random, demon-slayer, attack-on-titan, your-name, etc.
-SPLASH_TYPE="auto"     # Options: auto, video, image, minimal, none
+# This script displays an anime-themed splash screen before starting Hyprland
 
 # Colors for output
 RED='\033[0;31m'
@@ -24,6 +12,18 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+# Configuration file
+CONFIG_FILE="$HOME/.config/hypr/splash/config.conf"
+
+# Default values
+SPLASH_TYPE="auto"
+SPLASH_THEME="default"
+SPLASH_DURATION=5
+SPLASH_AUDIO=true
+SPLASH_FADE=true
+SPLASH_FADE_DURATION=1
+CUSTOM_SPLASH_PATH=""
+
 # Function to print colored messages
 print_message() {
     local color=$1
@@ -31,469 +31,473 @@ print_message() {
     echo -e "${color}${message}${NC}"
 }
 
+# Function to load configuration
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    fi
+}
+
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Function to show the selection menu
-show_selection_menu() {
-    print_message "$PURPLE" "=== Hyprland Anime Ricing Splash Screen Selection ==="
-    print_message "$BLUE" "Please select your preferred splash screen type:"
-    echo "1) Auto (Video if available, otherwise image)"
-    echo "2) Video (Animated splash screen)"
-    echo "3) Image (Static splash screen)"
-    echo "4) Minimal (Simple text splash)"
-    echo "5) None (Skip splash screen)"
-    echo "6) Configure splash settings"
-    echo "7) Exit without changes"
-    
-    read -p "Enter your choice (1-7): " choice
-    
-    case $choice in
-        1) SPLASH_TYPE="auto" ;;
-        2) SPLASH_TYPE="video" ;;
-        3) SPLASH_TYPE="image" ;;
-        4) SPLASH_TYPE="minimal" ;;
-        5) SPLASH_TYPE="none" ;;
-        6) configure_splash_settings ;;
-        7) exit 0 ;;
-        *) print_message "$RED" "Invalid choice. Using default (auto)." ;;
-    esac
-    
-    # Save the selection to a config file
-    save_splash_config
+# Function to check if a file exists
+file_exists() {
+    [ -f "$1" ]
 }
 
-# Function to configure splash settings
-configure_splash_settings() {
-    print_message "$PURPLE" "=== Splash Screen Configuration ==="
-    
-    # Configure theme
-    print_message "$BLUE" "Available themes:"
-    echo "1) Random (changes each time)"
-    echo "2) Demon Slayer"
-    echo "3) Attack on Titan"
-    echo "4) Your Name"
-    echo "5) Tokyo Ghoul"
-    echo "6) Evangelion"
-    echo "7) One Piece"
-    echo "8) Naruto"
-    echo "9) Sailor Moon"
-    echo "10) Death Note"
-    echo "11) Akira"
-    echo "12) Princess Mononoke"
-    echo "13) Cowboy Bebop"
-    echo "14) Default"
-    
-    read -p "Select a theme (1-14): " theme_choice
-    
-    case $theme_choice in
-        1) SPLASH_THEME="random" ;;
-        2) SPLASH_THEME="demon-slayer" ;;
-        3) SPLASH_THEME="attack-on-titan" ;;
-        4) SPLASH_THEME="your-name" ;;
-        5) SPLASH_THEME="tokyo-ghoul" ;;
-        6) SPLASH_THEME="evangelion" ;;
-        7) SPLASH_THEME="one-piece" ;;
-        8) SPLASH_THEME="naruto" ;;
-        9) SPLASH_THEME="sailor-moon" ;;
-        10) SPLASH_THEME="death-note" ;;
-        11) SPLASH_THEME="akira" ;;
-        12) SPLASH_THEME="princess-mononoke" ;;
-        13) SPLASH_THEME="cowboy-bebop" ;;
-        14) SPLASH_THEME="default" ;;
-        *) print_message "$RED" "Invalid choice. Using default theme." ;;
-    esac
-    
-    # Configure duration
-    read -p "Enter splash duration in seconds (1-10, default: 5): " duration
-    if [[ $duration =~ ^[0-9]+$ ]] && [ $duration -ge 1 ] && [ $duration -le 10 ]; then
-        SPLASH_DURATION=$duration
+# Function to check if a directory exists
+dir_exists() {
+    [ -d "$1" ]
+}
+
+# Function to detect system capabilities
+detect_system_capabilities() {
+    # Check if mpv is available for video playback
+    if command_exists "mpv"; then
+        HAS_MPV=true
     else
-        print_message "$YELLOW" "Invalid duration. Using default (5 seconds)."
+        HAS_MPV=false
     fi
     
-    # Configure audio
-    read -p "Enable audio for splash screen? (y/n, default: y): " audio_choice
-    if [[ $audio_choice =~ ^[Yy]$ ]] || [ -z "$audio_choice" ]; then
-        SPLASH_AUDIO=true
-        
-        # Configure volume
-        read -p "Enter audio volume (0.0-1.0, default: 0.3): " volume
-        if [[ $volume =~ ^[0-9]+(\.[0-9]+)?$ ]] && (( $(echo "$volume >= 0.0 && $volume <= 1.0" | bc -l) )); then
-            SPLASH_VOLUME=$volume
-        else
-            print_message "$YELLOW" "Invalid volume. Using default (0.3)."
-        fi
-    else
-        SPLASH_AUDIO=false
-    fi
-    
-    # Configure fade effect
-    read -p "Enter fade effect duration in seconds (0.0-2.0, default: 1.0): " fade
-    if [[ $fade =~ ^[0-9]+(\.[0-9]+)?$ ]] && (( $(echo "$fade >= 0.0 && $fade <= 2.0" | bc -l) )); then
-        SPLASH_FADE=$fade
-    else
-        print_message "$YELLOW" "Invalid fade duration. Using default (1.0 seconds)."
-    fi
-    
-    print_message "$GREEN" "Splash screen configuration saved!"
-    
-    # Save the configuration
-    save_splash_config
-    
-    # Return to the main menu
-    show_selection_menu
-}
-
-# Function to save splash configuration
-save_splash_config() {
-    # Create config directory if it doesn't exist
-    mkdir -p "$HOME/.config/hypr/splash"
-    
-    # Save configuration to a file
-    cat > "$HOME/.config/hypr/splash/config.conf" << EOF
-# Hyprland Anime Ricing Splash Screen Configuration
-SPLASH_TYPE="$SPLASH_TYPE"
-SPLASH_THEME="$SPLASH_THEME"
-SPLASH_DURATION=$SPLASH_DURATION
-SPLASH_AUDIO=$SPLASH_AUDIO
-SPLASH_VOLUME=$SPLASH_VOLUME
-SPLASH_FADE=$SPLASH_FADE
-EOF
-    
-    print_message "$GREEN" "Splash screen configuration saved to $HOME/.config/hypr/splash/config.conf"
-}
-
-# Function to load splash configuration
-load_splash_config() {
-    local config_file="$HOME/.config/hypr/splash/config.conf"
-    
-    if [ -f "$config_file" ]; then
-        print_message "$BLUE" "Loading splash screen configuration..."
-        source "$config_file"
-        print_message "$GREEN" "Configuration loaded!"
-    else
-        print_message "$YELLOW" "No configuration file found. Using defaults."
-    fi
-}
-
-# Function to create splash directory and download splash files if needed
-setup_splash() {
-    # Create splash directory if it doesn't exist
-    if [ ! -d "$SPLASH_DIR" ]; then
-        print_message "$BLUE" "Creating splash directory at $SPLASH_DIR..."
-        mkdir -p "$SPLASH_DIR"
-    fi
-
-    # Check if splash files exist
-    if [ ! -f "$SPLASH_VIDEO" ] && [ ! -f "$SPLASH_IMAGE" ]; then
-        print_message "$YELLOW" "No splash files found. Downloading sample splash files..."
-        
-        # Create a simple splash image if no video is available
-        if ! command_exists "convert"; then
-            print_message "$YELLOW" "ImageMagick not found. Installing..."
-            if command_exists "pacman"; then
-                sudo pacman -S --noconfirm imagemagick
-            elif command_exists "apt"; then
-                sudo apt install -y imagemagick
-            else
-                print_message "$RED" "Could not install ImageMagick. Please install it manually."
-                return 1
-            fi
-        fi
-        
-        # Create a simple splash image
-        convert -size 1920x1080 xc:black -fill white -gravity center -pointsize 72 -annotate 0 "Hyprland\nAnime Ricing" "$SPLASH_IMAGE"
-        
-        # Try to download a sample splash video if mpv is available
-        if command_exists "mpv"; then
-            print_message "$YELLOW" "Downloading sample splash video..."
-            # This is a placeholder URL - you would replace with actual anime splash video
-            # wget -O "$SPLASH_VIDEO" "https://example.com/anime-splash.mp4" || print_message "$RED" "Failed to download splash video."
-            
-            # For now, we'll just create a simple video using ffmpeg if available
-            if command_exists "ffmpeg"; then
-                print_message "$YELLOW" "Creating a simple splash video..."
-                ffmpeg -f lavfi -i color=c=black:s=1920x1080:d=$SPLASH_DURATION -vf "drawtext=fontfile=/usr/share/fonts/TTF/DejaVuSans-Bold.ttf:text='Hyprland Anime Ricing':fontcolor=white:fontsize=72:x=(w-text_w)/2:y=(h-text_h)/2" -c:v libx264 -pix_fmt yuv420p "$SPLASH_VIDEO" -y
-            else
-                print_message "$RED" "ffmpeg not found. Please install it to create splash videos."
-            fi
-        fi
-    fi
-}
-
-# Function to select a theme-based splash
-select_theme_splash() {
-    local theme=$1
-    local themes_dir="$HOME/.config/hypr/themes"
-    
-    # If theme is "random", pick a random theme
-    if [ "$theme" = "random" ]; then
-        if [ -d "$themes_dir" ]; then
-            # Get list of themes and pick one randomly
-            themes=($(ls -d "$themes_dir"/*/ 2>/dev/null | xargs -n1 basename))
-            if [ ${#themes[@]} -gt 0 ]; then
-                theme=${themes[$RANDOM % ${#themes[@]}]}
-                print_message "$GREEN" "Selected random theme: $theme"
-            else
-                print_message "$YELLOW" "No themes found. Using default splash."
-                return
-            fi
-        else
-            print_message "$YELLOW" "Themes directory not found. Using default splash."
-            return
-        fi
-    fi
-    
-    # Check if theme-specific splash exists
-    if [ -f "$themes_dir/$theme/splash.mp4" ]; then
-        SPLASH_VIDEO="$themes_dir/$theme/splash.mp4"
-        print_message "$GREEN" "Using theme-specific splash: $SPLASH_VIDEO"
-    elif [ -f "$themes_dir/$theme/splash.png" ]; then
-        SPLASH_IMAGE="$themes_dir/$theme/splash.png"
-        print_message "$GREEN" "Using theme-specific splash: $SPLASH_IMAGE"
-    else
-        print_message "$YELLOW" "No theme-specific splash found for $theme. Using default splash."
-    fi
-}
-
-# Function to show a minimal splash screen
-show_minimal_splash() {
-    print_message "$GREEN" "Showing minimal splash screen..."
-    
-    # Create a temporary minimal splash image
-    local temp_image="/tmp/minimal-splash.png"
-    
-    # Check if ImageMagick is installed
-    if ! command_exists "convert"; then
-        print_message "$RED" "ImageMagick not found. Cannot create minimal splash."
-        return 1
-    fi
-    
-    # Create a simple splash image
-    convert -size 1920x1080 xc:black -fill white -gravity center -pointsize 72 -annotate 0 "Hyprland\nAnime Ricing" "$temp_image"
-    
-    # Display the minimal splash
+    # Check if swww is available for image display
     if command_exists "swww"; then
-        # Initialize swww if not already running
-        if ! pgrep -x "swww" > /dev/null; then
-            swww init
-        fi
-        
-        # Display the splash image with a fade effect
-        swww img "$temp_image" --transition-fps 60 --transition-type fade --transition-duration $SPLASH_FADE
-        
-        # Wait for the splash duration
-        sleep $SPLASH_DURATION
-        
-        # Clear the splash image
-        swww clear
-    elif command_exists "feh"; then
-        # Display the splash image
-        feh --fullscreen --hide-pointer "$temp_image" &
-        FEH_PID=$!
-        
-        # Wait for the splash duration
-        sleep $SPLASH_DURATION
-        
-        # Kill feh
-        kill $FEH_PID
+        HAS_SWWW=true
     else
-        print_message "$RED" "Neither swww nor feh found. Cannot display minimal splash."
-        return 1
+        HAS_SWWW=false
     fi
     
-    # Remove the temporary image
-    rm -f "$temp_image"
+    # Check if feh is available for image display
+    if command_exists "feh"; then
+        HAS_FEH=true
+    else
+        HAS_FEH=false
+    fi
+    
+    # Check if bc is available for calculations
+    if command_exists "bc"; then
+        HAS_BC=true
+    else
+        HAS_BC=false
+    fi
+    
+    # Check if audio is available
+    if command_exists "pactl" || command_exists "amixer"; then
+        HAS_AUDIO=true
+    else
+        HAS_AUDIO=false
+    fi
+    
+    # Check if we're running in a terminal
+    if [ -t 1 ]; then
+        IS_TERMINAL=true
+    else
+        IS_TERMINAL=false
+    fi
+    
+    # Check if we're running in a Wayland session
+    if [ -n "$WAYLAND_DISPLAY" ]; then
+        IS_WAYLAND=true
+    else
+        IS_WAYLAND=false
+    fi
+    
+    # Check if we're running in an X session
+    if [ -n "$DISPLAY" ]; then
+        IS_X=true
+    else
+        IS_X=false
+    fi
 }
 
-# Function to show the splash screen
-show_splash() {
-    # Skip splash if configured to none
-    if [ "$SPLASH_TYPE" = "none" ]; then
-        print_message "$YELLOW" "Splash screen disabled. Skipping..."
-        return 0
-    fi
-    
-    # Select theme-based splash if configured
-    if [ "$SPLASH_THEME" != "default" ]; then
-        select_theme_splash "$SPLASH_THEME"
-    fi
-    
-    # Determine splash type if set to auto
+# Function to determine the best splash screen type
+determine_best_splash_type() {
     if [ "$SPLASH_TYPE" = "auto" ]; then
-        if [ -f "$SPLASH_VIDEO" ] && command_exists "mpv"; then
+        if [ "$HAS_MPV" = true ] && [ "$IS_WAYLAND" = true ]; then
             SPLASH_TYPE="video"
-        elif [ -f "$SPLASH_IMAGE" ] && (command_exists "swww" || command_exists "feh"); then
+        elif [ "$HAS_SWWW" = true ] && [ "$IS_WAYLAND" = true ]; then
+            SPLASH_TYPE="image"
+        elif [ "$HAS_FEH" = true ] && [ "$IS_X" = true ]; then
             SPLASH_TYPE="image"
         else
             SPLASH_TYPE="minimal"
         fi
     fi
+}
+
+# Function to show the selection menu
+show_selection_menu() {
+    # If the script is called with the "select" argument, launch the splash selector
+    if [ "$1" = "select" ]; then
+        "$HOME/.config/hypr/scripts/splash-selector.sh"
+        exit 0
+    fi
+}
+
+# Function to show the splash screen
+show_splash() {
+    # Load configuration
+    load_config
     
-    # Show the appropriate splash screen
+    # Detect system capabilities
+    detect_system_capabilities
+    
+    # Determine the best splash screen type
+    determine_best_splash_type
+    
+    # Show the appropriate splash screen based on the type
     case "$SPLASH_TYPE" in
         "video")
-            if [ -f "$SPLASH_VIDEO" ] && command_exists "mpv"; then
-                print_message "$GREEN" "Showing video splash screen..."
-                
-                # Set audio options
-                local audio_opts=""
-                if [ "$SPLASH_AUDIO" = true ]; then
-                    audio_opts="--volume=$SPLASH_VOLUME"
-                else
-                    audio_opts="--no-audio"
-                fi
-                
-                # Play the splash video
-                mpv --no-terminal --no-border --no-window-controls --no-input-default-bindings \
-                    --no-input-vo-keyboard --no-osc --no-osd-bar --no-sub --no-sub-auto \
-                    --no-config --no-ytdl --no-cache --no-demuxer-thread --no-hr-seek \
-                    --no-keep-open --no-resume-playback --no-terminal --no-video-sync \
-                    --no-audio-display --no-msg-color --no-msg-module --no-msg-time \
-                    --no-border --no-window-controls --no-input-default-bindings \
-                    --no-input-vo-keyboard --no-osc --no-osd-bar --no-sub --no-sub-auto \
-                    --no-config --no-ytdl --no-cache --no-demuxer-thread --no-hr-seek \
-                    --no-keep-open --no-resume-playback --no-terminal --no-video-sync \
-                    --no-audio-display --no-msg-color --no-msg-module --no-msg-time \
-                    --loop=inf --length=$SPLASH_DURATION $audio_opts "$SPLASH_VIDEO" &
-                
-                # Wait for the splash duration
-                sleep $SPLASH_DURATION
-                
-                # Kill mpv
-                pkill mpv
-            else
-                print_message "$YELLOW" "Video splash not available. Falling back to image splash."
-                SPLASH_TYPE="image"
-                show_splash
-            fi
+            show_video_splash
             ;;
         "image")
-            if [ -f "$SPLASH_IMAGE" ] && command_exists "swww"; then
-                print_message "$GREEN" "Showing image splash screen..."
-                
-                # Initialize swww if not already running
-                if ! pgrep -x "swww" > /dev/null; then
-                    swww init
-                fi
-                
-                # Display the splash image with a fade effect
-                swww img "$SPLASH_IMAGE" --transition-fps 60 --transition-type fade --transition-duration $SPLASH_FADE
-                
-                # Wait for the splash duration
-                sleep $SPLASH_DURATION
-                
-                # Clear the splash image
-                swww clear
-            elif [ -f "$SPLASH_IMAGE" ] && command_exists "feh"; then
-                print_message "$GREEN" "Showing image splash screen with feh..."
-                
-                # Display the splash image
-                feh --fullscreen --hide-pointer "$SPLASH_IMAGE" &
-                FEH_PID=$!
-                
-                # Wait for the splash duration
-                sleep $SPLASH_DURATION
-                
-                # Kill feh
-                kill $FEH_PID
-            else
-                print_message "$YELLOW" "Image splash not available. Falling back to minimal splash."
-                SPLASH_TYPE="minimal"
-                show_splash
-            fi
+            show_image_splash
             ;;
         "minimal")
             show_minimal_splash
             ;;
+        "none")
+            print_message "$YELLOW" "Splash screen disabled."
+            ;;
         *)
-            print_message "$RED" "Unknown splash type: $SPLASH_TYPE. Using minimal splash."
-            SPLASH_TYPE="minimal"
-            show_splash
+            print_message "$RED" "Unknown splash screen type: $SPLASH_TYPE"
+            show_minimal_splash
             ;;
     esac
 }
 
-# Function to show the setup menu
-show_setup_menu() {
-    print_message "$PURPLE" "=== Hyprland Anime Ricing Splash Screen Setup ==="
-    print_message "$BLUE" "What would you like to do?"
-    echo "1) Configure splash screen settings"
-    echo "2) Create new splash images"
-    echo "3) Download sample splash videos"
-    echo "4) Return to main menu"
-    echo "5) Exit"
+# Function to show a video splash screen
+show_video_splash() {
+    # Check if mpv is available
+    if [ "$HAS_MPV" = false ]; then
+        print_message "$RED" "mpv is not available. Falling back to minimal splash screen."
+        show_minimal_splash
+        return
+    fi
     
-    read -p "Enter your choice (1-5): " setup_choice
-    
-    case $setup_choice in
-        1) 
-            configure_splash_settings
-            show_setup_menu
+    # Get the video path based on the theme
+    local video_path
+    case "$SPLASH_THEME" in
+        "default")
+            video_path="$HOME/.config/hypr/splash/videos/default.mp4"
             ;;
-        2)
-            print_message "$BLUE" "Creating new splash images..."
-            "$HOME/.config/hypr/scripts/create-splash-image.sh"
-            show_setup_menu
+        "cyberpunk")
+            video_path="$HOME/.config/hypr/splash/videos/cyberpunk.mp4"
             ;;
-        3)
-            print_message "$BLUE" "Downloading sample splash videos..."
-            # This would be implemented to download actual anime splash videos
-            print_message "$YELLOW" "This feature is not yet implemented."
-            show_setup_menu
+        "kawaii")
+            video_path="$HOME/.config/hypr/splash/videos/kawaii.mp4"
             ;;
-        4)
-            show_selection_menu
+        "minimal")
+            video_path="$HOME/.config/hypr/splash/videos/minimal.mp4"
             ;;
-        5)
-            exit 0
+        "custom")
+            if [ -n "$CUSTOM_SPLASH_PATH" ] && file_exists "$CUSTOM_SPLASH_PATH"; then
+                video_path="$CUSTOM_SPLASH_PATH"
+            else
+                print_message "$RED" "Custom video not found. Using default video."
+                video_path="$HOME/.config/hypr/splash/videos/default.mp4"
+            fi
             ;;
         *)
-            print_message "$RED" "Invalid choice."
-            show_setup_menu
+            print_message "$RED" "Unknown theme: $SPLASH_THEME. Using default theme."
+            video_path="$HOME/.config/hypr/splash/videos/default.mp4"
             ;;
     esac
+    
+    # Check if the video exists
+    if ! file_exists "$video_path"; then
+        print_message "$RED" "Video not found: $video_path"
+        print_message "$YELLOW" "Falling back to minimal splash screen."
+        show_minimal_splash
+        return
+    fi
+    
+    # Play the video
+    print_message "$GREEN" "Playing video splash screen: $video_path"
+    
+    # Set audio options
+    local audio_options=""
+    if [ "$SPLASH_AUDIO" = true ] && [ "$HAS_AUDIO" = true ]; then
+        audio_options="--no-mute"
+    else
+        audio_options="--mute"
+    fi
+    
+    # Play the video with mpv
+    if [ "$1" = "preview" ]; then
+        # In preview mode, show the video in a window
+        mpv --no-border --no-window-controls --no-input-default-bindings --no-terminal --no-osc --no-osd-bar --loop=1 --no-audio-display $audio_options "$video_path" &
+        sleep "$SPLASH_DURATION"
+        pkill -f "mpv.*$video_path"
+    else
+        # In normal mode, show the video fullscreen
+        if [ "$IS_WAYLAND" = true ]; then
+            # For Wayland, use mpv with wayland output
+            mpv --no-border --no-window-controls --no-input-default-bindings --no-terminal --no-osc --no-osd-bar --loop=1 --no-audio-display --vo=gpu --gpu-context=wayland $audio_options "$video_path" &
+            sleep "$SPLASH_DURATION"
+            pkill -f "mpv.*$video_path"
+        elif [ "$IS_X" = true ]; then
+            # For X, use mpv with x11 output
+            mpv --no-border --no-window-controls --no-input-default-bindings --no-terminal --no-osc --no-osd-bar --loop=1 --no-audio-display --vo=gpu --gpu-context=x11 $audio_options "$video_path" &
+            sleep "$SPLASH_DURATION"
+            pkill -f "mpv.*$video_path"
+        else
+            # Fallback to minimal splash screen
+            print_message "$RED" "Neither Wayland nor X detected. Falling back to minimal splash screen."
+            show_minimal_splash
+        fi
+    fi
+}
+
+# Function to show an image splash screen
+show_image_splash() {
+    # Get the image path based on the theme
+    local image_path
+    case "$SPLASH_THEME" in
+        "default")
+            image_path="$HOME/.config/hypr/splash/images/default.png"
+            ;;
+        "cyberpunk")
+            image_path="$HOME/.config/hypr/splash/images/cyberpunk.png"
+            ;;
+        "kawaii")
+            image_path="$HOME/.config/hypr/splash/images/kawaii.png"
+            ;;
+        "minimal")
+            image_path="$HOME/.config/hypr/splash/images/minimal.png"
+            ;;
+        "custom")
+            if [ -n "$CUSTOM_SPLASH_PATH" ] && file_exists "$CUSTOM_SPLASH_PATH"; then
+                image_path="$CUSTOM_SPLASH_PATH"
+            else
+                print_message "$RED" "Custom image not found. Using default image."
+                image_path="$HOME/.config/hypr/splash/images/default.png"
+            fi
+            ;;
+        *)
+            print_message "$RED" "Unknown theme: $SPLASH_THEME. Using default theme."
+            image_path="$HOME/.config/hypr/splash/images/default.png"
+            ;;
+    esac
+    
+    # Check if the image exists
+    if ! file_exists "$image_path"; then
+        print_message "$RED" "Image not found: $image_path"
+        print_message "$YELLOW" "Falling back to minimal splash screen."
+        show_minimal_splash
+        return
+    fi
+    
+    # Display the image
+    print_message "$GREEN" "Displaying image splash screen: $image_path"
+    
+    # Play audio if enabled
+    if [ "$SPLASH_AUDIO" = true ] && [ "$HAS_AUDIO" = true ]; then
+        # Get the audio path based on the theme
+        local audio_path
+        case "$SPLASH_THEME" in
+            "default")
+                audio_path="$HOME/.config/hypr/splash/sounds/default.mp3"
+                ;;
+            "cyberpunk")
+                audio_path="$HOME/.config/hypr/splash/sounds/cyberpunk.mp3"
+                ;;
+            "kawaii")
+                audio_path="$HOME/.config/hypr/splash/sounds/kawaii.mp3"
+                ;;
+            "minimal")
+                audio_path="$HOME/.config/hypr/splash/sounds/minimal.mp3"
+                ;;
+            "custom")
+                # For custom theme, try to find a matching audio file
+                audio_path="$HOME/.config/hypr/splash/sounds/default.mp3"
+                ;;
+            *)
+                audio_path="$HOME/.config/hypr/splash/sounds/default.mp3"
+                ;;
+        esac
+        
+        # Check if the audio exists
+        if file_exists "$audio_path"; then
+            # Play the audio in the background
+            if command_exists "mpv"; then
+                mpv --no-video --no-terminal --no-osc --no-osd-bar "$audio_path" &
+            elif command_exists "paplay"; then
+                paplay "$audio_path" &
+            elif command_exists "aplay"; then
+                aplay "$audio_path" &
+            fi
+        fi
+    fi
+    
+    # Display the image with fade effects if enabled
+    if [ "$SPLASH_FADE" = true ] && [ "$HAS_BC" = true ]; then
+        # Calculate fade steps
+        local fade_steps=$(echo "scale=0; $SPLASH_FADE_DURATION * 10" | bc)
+        local step_duration=$(echo "scale=2; $SPLASH_FADE_DURATION / $fade_steps" | bc)
+        
+        # Fade in
+        for i in $(seq 0 $fade_steps); do
+            local opacity=$(echo "scale=2; $i / $fade_steps" | bc)
+            if [ "$IS_WAYLAND" = true ] && [ "$HAS_SWWW" = true ]; then
+                # For Wayland, use swww
+                swww img "$image_path" --transition-step 1 --transition-fps 60 --transition-type fade --transition-pos 0,0 --transition-bezier 0.0,0.0,1.0,1.0 --transition-duration $step_duration
+            elif [ "$IS_X" = true ] && [ "$HAS_FEH" = true ]; then
+                # For X, use feh with fade effect
+                feh --bg-fill "$image_path" --no-fehbg
+                # Apply fade effect using xrandr
+                if command_exists "xrandr"; then
+                    for output in $(xrandr --query | grep " connected" | cut -d" " -f1); do
+                        xrandr --output "$output" --brightness "$opacity"
+                    done
+                fi
+            else
+                # Fallback to minimal splash screen
+                print_message "$RED" "Neither swww nor feh available. Falling back to minimal splash screen."
+                show_minimal_splash
+                return
+            fi
+            sleep "$step_duration"
+        done
+        
+        # Display for the specified duration
+        sleep "$SPLASH_DURATION"
+        
+        # Fade out
+        for i in $(seq $fade_steps -1 0); do
+            local opacity=$(echo "scale=2; $i / $fade_steps" | bc)
+            if [ "$IS_WAYLAND" = true ] && [ "$HAS_SWWW" = true ]; then
+                # For Wayland, use swww
+                swww img "$image_path" --transition-step 1 --transition-fps 60 --transition-type fade --transition-pos 0,0 --transition-bezier 0.0,0.0,1.0,1.0 --transition-duration $step_duration
+            elif [ "$IS_X" = true ] && [ "$HAS_FEH" = true ]; then
+                # For X, use feh with fade effect
+                feh --bg-fill "$image_path" --no-fehbg
+                # Apply fade effect using xrandr
+                if command_exists "xrandr"; then
+                    for output in $(xrandr --query | grep " connected" | cut -d" " -f1); do
+                        xrandr --output "$output" --brightness "$opacity"
+                    done
+                fi
+            else
+                # Fallback to minimal splash screen
+                print_message "$RED" "Neither swww nor feh available. Falling back to minimal splash screen."
+                show_minimal_splash
+                return
+            fi
+            sleep "$step_duration"
+        done
+    else
+        # Display without fade effects
+        if [ "$IS_WAYLAND" = true ] && [ "$HAS_SWWW" = true ]; then
+            # For Wayland, use swww
+            swww img "$image_path" --transition-type none
+        elif [ "$IS_X" = true ] && [ "$HAS_FEH" = true ]; then
+            # For X, use feh
+            feh --bg-fill "$image_path" --no-fehbg
+        else
+            # Fallback to minimal splash screen
+            print_message "$RED" "Neither swww nor feh available. Falling back to minimal splash screen."
+            show_minimal_splash
+            return
+        fi
+        
+        # Display for the specified duration
+        sleep "$SPLASH_DURATION"
+    fi
+}
+
+# Function to show a minimal splash screen
+show_minimal_splash() {
+    # Get the text based on the theme
+    local splash_text
+    case "$SPLASH_THEME" in
+        "default")
+            splash_text="Welcome to Hyprland Anime Ricing"
+            ;;
+        "cyberpunk")
+            splash_text="Welcome to Cyberpunk Hyprland"
+            ;;
+        "kawaii")
+            splash_text="Welcome to Kawaii Hyprland"
+            ;;
+        "minimal")
+            splash_text="Welcome to Hyprland"
+            ;;
+        "custom")
+            splash_text="Welcome to Hyprland"
+            ;;
+        *)
+            splash_text="Welcome to Hyprland"
+            ;;
+    esac
+    
+    # Display the minimal splash screen
+    print_message "$PURPLE" "=== $splash_text ==="
+    print_message "$CYAN" "Loading your desktop environment..."
+    
+    # Play audio if enabled
+    if [ "$SPLASH_AUDIO" = true ] && [ "$HAS_AUDIO" = true ]; then
+        # Get the audio path based on the theme
+        local audio_path
+        case "$SPLASH_THEME" in
+            "default")
+                audio_path="$HOME/.config/hypr/splash/sounds/default.mp3"
+                ;;
+            "cyberpunk")
+                audio_path="$HOME/.config/hypr/splash/sounds/cyberpunk.mp3"
+                ;;
+            "kawaii")
+                audio_path="$HOME/.config/hypr/splash/sounds/kawaii.mp3"
+                ;;
+            "minimal")
+                audio_path="$HOME/.config/hypr/splash/sounds/minimal.mp3"
+                ;;
+            "custom")
+                # For custom theme, try to find a matching audio file
+                audio_path="$HOME/.config/hypr/splash/sounds/default.mp3"
+                ;;
+            *)
+                audio_path="$HOME/.config/hypr/splash/sounds/default.mp3"
+                ;;
+        esac
+        
+        # Check if the audio exists
+        if file_exists "$audio_path"; then
+            # Play the audio in the background
+            if command_exists "mpv"; then
+                mpv --no-video --no-terminal --no-osc --no-osd-bar "$audio_path" &
+            elif command_exists "paplay"; then
+                paplay "$audio_path" &
+            elif command_exists "aplay"; then
+                aplay "$audio_path" &
+            fi
+        fi
+    fi
+    
+    # Display for the specified duration
+    sleep "$SPLASH_DURATION"
+    
+    print_message "$GREEN" "=== Splash screen complete! ==="
 }
 
 # Main function
 main() {
-    # Check if this is the first run
-    if [ ! -f "$HOME/.config/hypr/splash/config.conf" ]; then
-        print_message "$PURPLE" "=== First-time Splash Screen Setup ==="
-        print_message "$BLUE" "This appears to be your first time running the splash screen."
-        print_message "$BLUE" "Would you like to configure it now? (y/n)"
-        read -p "Enter your choice (y/n): " first_run_choice
-        
-        if [[ $first_run_choice =~ ^[Yy]$ ]]; then
-            show_setup_menu
-        else
-            # Use defaults
-            save_splash_config
-        fi
-    else
-        # Load existing configuration
-        load_splash_config
-        
-        # Check if we're being called with a setup parameter
-        if [ "$1" = "setup" ]; then
-            show_setup_menu
-            exit 0
-        elif [ "$1" = "select" ]; then
-            show_selection_menu
-            exit 0
-        fi
+    # Check if the script is called with the "select" argument
+    if [ "$1" = "select" ]; then
+        show_selection_menu "$1"
+        exit 0
     fi
     
-    # Setup splash files if needed
-    setup_splash
+    # Check if the script is called with the "preview" argument
+    if [ "$1" = "preview" ]; then
+        show_splash
+        exit 0
+    fi
     
     # Show the splash screen
     show_splash
-    
-    print_message "$GREEN" "Splash screen complete. Starting Hyprland..."
 }
 
 # Run the main function
