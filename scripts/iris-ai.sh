@@ -108,7 +108,17 @@ init_config() {
         "file_management": true,
         "process_management": true,
         "network_control": true,
-        "audio_control": true
+        "audio_control": true,
+        "voice_control": true
+    },
+    "voice": {
+        "model": "en-US",
+        "speed": 1.0,
+        "volume": 1.0,
+        "pitch": 1.0,
+        "gender": "female",
+        "anime_voice": false,
+        "anime_voice_style": "kawaii"
     }
 }
 EOF
@@ -123,6 +133,15 @@ install_dependencies() {
     pip3 install --user transformers torch accelerate sentencepiece protobuf
     
     print_success "Installed required Python packages"
+}
+
+# Install voice dependencies
+install_voice_dependencies() {
+    print_section "Installing voice dependencies"
+    
+    pip3 install --user SpeechRecognition gTTS pygame numpy sounddevice
+    
+    print_success "Installed voice dependencies"
 }
 
 # Download selected model
@@ -190,6 +209,9 @@ setup_iris() {
     # Install dependencies
     install_dependencies
     
+    # Install voice dependencies
+    install_voice_dependencies
+    
     # Show available models
     print_section "Available Models"
     for model in "${!MODEL_REQUIREMENTS[@]}"; do
@@ -207,6 +229,53 @@ setup_iris() {
         exit 1
     fi
     
+    # Ask about voice capabilities
+    print_section "Voice Capabilities"
+    read -p "Do you want to enable voice capabilities? (y/n): " enable_voice
+    
+    if [[ "$enable_voice" == "y" || "$enable_voice" == "Y" ]]; then
+        # Enable voice capabilities
+        jq '.capabilities.voice_control = true' "$CONFIG_FILE" > "$CONFIG_FILE.tmp"
+        mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+        
+        # Ask about anime voice
+        read -p "Do you want to enable anime voice style? (y/n): " enable_anime_voice
+        
+        if [[ "$enable_anime_voice" == "y" || "$enable_anime_voice" == "Y" ]]; then
+            # Enable anime voice
+            jq '.voice.anime_voice = true' "$CONFIG_FILE" > "$CONFIG_FILE.tmp"
+            mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+            
+            # Show available anime voice styles
+            echo -e "${YELLOW}Available anime voice styles:${NC}"
+            echo -e "1. kawaii - Cute and high-pitched"
+            echo -e "2. tsundere - Slightly higher pitch, normal speed"
+            echo -e "3. yandere - Lower pitch, slower speed"
+            echo -e "4. kuudere - Lower pitch, normal speed"
+            echo -e "5. senpai - Slightly higher pitch, slower speed"
+            
+            # Get user's anime voice style choice
+            read -p "Enter the anime voice style you want to use (1-5): " anime_voice_style_choice
+            
+            case $anime_voice_style_choice in
+                1) anime_voice_style="kawaii" ;;
+                2) anime_voice_style="tsundere" ;;
+                3) anime_voice_style="yandere" ;;
+                4) anime_voice_style="kuudere" ;;
+                5) anime_voice_style="senpai" ;;
+                *) anime_voice_style="kawaii" ;;
+            esac
+            
+            # Set anime voice style
+            jq --arg style "$anime_voice_style" '.voice.anime_voice_style = $style' "$CONFIG_FILE" > "$CONFIG_FILE.tmp"
+            mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+        fi
+    else
+        # Disable voice capabilities
+        jq '.capabilities.voice_control = false' "$CONFIG_FILE" > "$CONFIG_FILE.tmp"
+        mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+    fi
+    
     print_success "Iris AI Assistant setup complete!"
 }
 
@@ -220,12 +289,19 @@ start_iris() {
     # Load configuration
     model=$(jq -r '.model' "$CONFIG_FILE")
     model_path=$(jq -r '.model_path' "$CONFIG_FILE")
+    voice_control=$(jq -r '.capabilities.voice_control' "$CONFIG_FILE")
     
     # Start the AI assistant
     python3 -c "
 import json
 import torch
+import sys
+import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+# Add the scripts directory to the path
+sys.path.append(os.path.dirname(os.path.abspath('$0')))
+from iris_os_control import IrisOSControl
 
 # Load configuration
 with open('$CONFIG_FILE', 'r') as f:
@@ -235,13 +311,24 @@ with open('$CONFIG_FILE', 'r') as f:
 model = AutoModelForCausalLM.from_pretrained('$model_path')
 tokenizer = AutoTokenizer.from_pretrained('$model_path')
 
-# Main interaction loop
-print('Iris AI Assistant is ready! Type \"exit\" to quit.')
-while True:
-    user_input = input('You: ')
-    if user_input.lower() == 'exit':
-        break
-        
+# Initialize OS control
+os_control = IrisOSControl('$CONFIG_FILE')
+
+# Initialize voice if enabled
+voice_enabled = config['capabilities'].get('voice_control', False)
+if voice_enabled:
+    try:
+        from iris_voice import IrisVoice
+        voice = IrisVoice('$CONFIG_FILE')
+        print('Voice capabilities enabled')
+    except ImportError:
+        print('Voice module not found. Voice capabilities disabled.')
+        voice_enabled = False
+else:
+    voice_enabled = False
+
+# Process user input
+def process_input(user_input):
     # Generate response
     inputs = tokenizer(user_input, return_tensors='pt')
     outputs = model.generate(
@@ -251,7 +338,51 @@ while True:
     )
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
+    # Speak the response if voice is enabled
+    if voice_enabled:
+        voice.speak(response)
+    
+    return response
+
+# Voice command callback
+def voice_command_callback(text):
+    print(f'Voice command: {text}')
+    response = process_input(text)
     print(f'Iris: {response}')
+
+# Main interaction loop
+print('Iris AI Assistant is ready! Type \"exit\" to quit.')
+print('Type \"voice on\" to enable voice commands or \"voice off\" to disable them.')
+
+# Start voice listening if enabled
+if voice_enabled:
+    voice.listen(voice_command_callback)
+    print('Voice commands enabled. Say \"Iris\" followed by your command.')
+
+while True:
+    user_input = input('You: ')
+    if user_input.lower() == 'exit':
+        break
+    elif user_input.lower() == 'voice on' and not voice_enabled:
+        try:
+            from iris_voice import IrisVoice
+            voice = IrisVoice('$CONFIG_FILE')
+            voice.listen(voice_command_callback)
+            voice_enabled = True
+            print('Voice commands enabled. Say \"Iris\" followed by your command.')
+        except ImportError:
+            print('Voice module not found. Voice capabilities disabled.')
+    elif user_input.lower() == 'voice off' and voice_enabled:
+        voice.stop_listening()
+        voice_enabled = False
+        print('Voice commands disabled.')
+    else:
+        response = process_input(user_input)
+        print(f'Iris: {response}')
+
+# Stop voice listening if enabled
+if voice_enabled:
+    voice.stop_listening()
 "
 }
 
