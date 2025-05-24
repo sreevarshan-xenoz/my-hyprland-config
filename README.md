@@ -17,6 +17,7 @@ A comprehensive, feature-rich anime-themed Hyprland configuration for Arch Linux
 - **📱 Mobile Integration**: Control your desktop from your phone
 - **🌐 Live Wallpapers**: Support for interactive and reactive wallpapers
 - **🎯 Context-Aware UI**: Interface adapts based on your activity
+- **🗣️ Iris AI Assistant**: Local AI assistant with voice capabilities
 
 ## ✨ Features Overview
 
@@ -100,6 +101,14 @@ A comprehensive, feature-rich anime-themed Hyprland configuration for Arch Linux
 - **Clipboard Manager**: Visual clipboard with anime-styled previews
 - **File Manager**: Themed file browsers with anime folder icons
 
+#### Iris AI Assistant
+- **Local AI Model**: Lightweight models based on hardware capabilities
+- **Voice Interaction**: Speak to Iris and receive voice responses
+- **OS Control**: Control system settings, applications, and more
+- **Anime Voice Styles**: Choose from 5 different anime voice personalities
+- **Context Awareness**: Understands and responds to your environment
+- **Hardware Optimization**: Automatically selects the best model for your system
+
 ### 🎮 Gaming Excellence
 
 #### Game Mode Features
@@ -138,6 +147,13 @@ A comprehensive, feature-rich anime-themed Hyprland configuration for Arch Linux
 - **RAM**: 16GB+ for smooth animations and effects
 - **CPU**: Multi-core processor (4+ cores recommended)
 - **Storage**: SSD for faster boot times and smoother animations
+
+### Iris AI Requirements
+- **RAM**: 2GB+ for lightweight models (phi2, qwen2.5-0.5b)
+- **RAM**: 4GB+ for medium models (gemma2b)
+- **Storage**: 2-4GB for model storage
+- **Microphone**: For voice command functionality
+- **Speakers**: For voice response output
 
 ### Supported Resolutions
 - **4K (3840x2160)**: Full support with scaling options
@@ -263,6 +279,15 @@ htop btop neofetch fastfetch uwufetch
 sensors lm_sensors nvtop
 ```
 
+### Iris AI Python Dependencies
+```bash
+# Core AI packages
+pip install transformers torch accelerate sentencepiece protobuf
+
+# Voice capabilities
+pip install SpeechRecognition gTTS pygame numpy sounddevice
+```
+
 ### AUR Packages (via yay/paru)
 ```bash
 # Essential AUR packages
@@ -303,7 +328,11 @@ yay -S zscroll-git picom-animations-git
 ├── icons/                 # Custom icons
 ├── scripts/               # Automation scripts
 ├── fonts/                 # Custom fonts
-└── mobile/                # Mobile integration
+├── mobile/                # Mobile integration
+└── iris/                  # Iris AI Assistant
+    ├── config.json        # Iris configuration
+    ├── models/            # AI model storage
+    └── logs/              # Iris activity logs
 ```
 
 ## 🎨 Theme Gallery
@@ -377,6 +406,7 @@ themes/my-custom-theme/
 | `XF86AudioMute` | Toggle mute | Audio |
 | `XF86MonBrightnessUp` | Brightness up | Display |
 | `XF86MonBrightnessDown` | Brightness down | Display |
+| `Super + I` | Launch Iris AI Assistant | AI |
 
 ### Anime-Specific Features
 | Keybinding | Action | Category |
@@ -407,6 +437,96 @@ themes/my-custom-theme/
 | `Super + Ctrl + A` | Achievement popup | Gaming |
 | `Super + Shift + N` | Notification history | System |
 | `Super + Alt + T` | Terminal dropdown | Launch |
+
+## 🤖 Iris AI Assistant
+
+### Features
+
+- **Local AI Models**: Choose from lightweight models based on your hardware:
+  - **Phi-2**: 2GB RAM, 2GB storage (Microsoft)
+  - **Gemma-2B**: 4GB RAM, 4GB storage (Google)
+  - **Qwen2.5-0.5B**: 2GB RAM, 2GB storage (Alibaba)
+
+- **Voice Capabilities**:
+  - **Voice Commands**: Speak to Iris and control your system
+  - **Voice Responses**: Iris speaks back with natural-sounding voices
+  - **Anime Voice Styles**: Choose from 5 different anime personalities:
+    - **Kawaii**: Cute and high-pitched
+    - **Tsundere**: Slightly higher pitch, normal speed
+    - **Yandere**: Lower pitch, slower speed
+    - **Kuudere**: Lower pitch, normal speed
+    - **Senpai**: Slightly higher pitch, slower speed
+
+- **OS Control Capabilities**:
+  - System information monitoring
+  - Audio and brightness control
+  - Process and file management
+  - Network control
+  - Power management
+  - Weather information
+  - Wallpaper management
+  - Waybar toggle
+  - Game mode toggle
+
+### Setup and Usage
+
+```bash
+# Setup Iris AI Assistant
+~/.config/hypr/scripts/iris-ai.sh setup
+
+# Start Iris AI Assistant
+~/.config/hypr/scripts/iris-ai.sh start
+
+# Voice commands
+# Say "Iris" followed by your command
+# Example: "Iris, what's the weather like today?"
+
+# Text commands
+# Type your command directly
+# Example: "Set wallpaper to random anime"
+```
+
+### Voice Command Examples
+
+- "Iris, increase the volume"
+- "Iris, what's my CPU temperature?"
+- "Iris, open Firefox"
+- "Iris, set wallpaper to random anime"
+- "Iris, toggle game mode"
+- "Iris, what's the weather like today?"
+- "Iris, show me my system information"
+- "Iris, play some music"
+
+### Configuration
+
+The Iris AI Assistant configuration is stored in `~/.config/iris/config.json`:
+
+```json
+{
+    "model": "phi2",
+    "model_path": "~/.config/iris/models/phi2",
+    "temperature": 0.7,
+    "max_tokens": 512,
+    "system_prompt": "You are Iris, a helpful AI assistant for Hyprland...",
+    "capabilities": {
+        "system_control": true,
+        "file_management": true,
+        "process_management": true,
+        "network_control": true,
+        "audio_control": true,
+        "voice_control": true
+    },
+    "voice": {
+        "model": "en-US",
+        "speed": 1.0,
+        "volume": 1.0,
+        "pitch": 1.0,
+        "gender": "female",
+        "anime_voice": true,
+        "anime_voice_style": "kawaii"
+    }
+}
+```
 
 ## 🔧 Advanced Configuration
 
@@ -621,6 +741,20 @@ radeontop   # AMD
 intel_gpu_top  # Intel
 ```
 
+#### Iris AI Issues
+```bash
+# Check Iris logs
+cat ~/.config/iris/iris.log
+
+# Reinstall Iris dependencies
+pip install --user transformers torch accelerate sentencepiece protobuf
+pip install --user SpeechRecognition gTTS pygame numpy sounddevice
+
+# Reset Iris configuration
+rm -rf ~/.config/iris/config.json
+~/.config/hypr/scripts/iris-ai.sh setup
+```
+
 ### Debug Mode
 
 Enable debug logging:
@@ -684,6 +818,13 @@ Help translate the interface:
 - Korean (한국어)
 - Chinese (中文)
 
+### Iris AI Contributions
+- **New Voice Styles**: Create additional anime voice personalities
+- **Model Optimizations**: Improve performance for specific hardware
+- **New Capabilities**: Add more OS control features
+- **Language Support**: Add support for additional languages
+- **UI Enhancements**: Improve the interaction experience
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -694,6 +835,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Hyprland](https://github.com/hyprwm/Hyprland) - The amazing Wayland compositor
 - [Waybar](https://github.com/Alexays/Waybar) - Highly customizable status bar
 - [EWW](https://github.com/elkowar/eww) - Widget system extraordinaire
+
+### AI and Voice Technologies
+- [Transformers](https://github.com/huggingface/transformers) - State-of-the-art NLP
+- [gTTS](https://github.com/pndurette/gTTS) - Google Text-to-Speech
+- [SpeechRecognition](https://github.com/Uberi/speech_recognition) - Speech recognition
 
 ### Anime Community
 - **Artists**: All the talented anime artists whose work inspires these themes
