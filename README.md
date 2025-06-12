@@ -18,6 +18,9 @@ A comprehensive, feature-rich anime-themed Hyprland configuration for Arch Linux
 - **🎬 Anime Splash Screen**: Custom boot splash with anime themes
 - **🎨 Dynamic Theming**: Automatic color extraction from wallpapers
 - **🔔 Custom Notifications**: Anime-styled notification system
+- **🚀 Performance Optimizer**: Automatic performance tuning based on hardware
+- **🖥️ Dynamic Workspace Manager**: Visual workspace management and navigation
+- **🧠 Advanced Local LLM Support**: Support for modern AI models like Llama 3, Mistral, and Phi-3
 
 ## 📋 System Requirements
 
@@ -157,6 +160,13 @@ yay -S plymouth-theme-anime spicetify-cli
 yay -S zscroll-git picom-animations-git
 ```
 
+### Performance Optimization Dependencies
+```bash
+# System monitoring and hardware detection
+lm_sensors dmidecode hwinfo inxi
+lspci lsusb pciutils usbutils
+```
+
 ## 🎛️ Configuration Structure
 
 ```
@@ -167,7 +177,9 @@ yay -S zscroll-git picom-animations-git
 ├── wallpapers/         # Wallpaper collections
 ├── sounds/             # Audio files
 ├── icons/              # Custom icons
-└── splash/             # Splash screen configurations
+├── splash/             # Splash screen configurations
+├── performance.conf    # Performance configuration
+└── workspaces.conf     # Workspace configuration
 ```
 
 ## ⌨️ Key Features
@@ -196,6 +208,58 @@ The configuration includes a dynamic theming system that can extract colors from
 
 ### Custom Keybindings
 The configuration includes a comprehensive set of keybindings for window management, system control, and application launching.
+
+### Performance Optimizer
+The configuration includes an automatic performance optimizer that detects your hardware capabilities and adjusts Hyprland settings accordingly for the best balance between visual effects and performance.
+
+```bash
+# Run performance optimizer
+hypr-performance
+
+# Apply performance profile
+hypr-performance --apply
+
+# Restore original settings
+hypr-performance --restore
+```
+
+### Enhanced Iris AI Assistant
+The Iris AI Assistant has been upgraded to support modern local LLMs like Llama 3, Mistral, and Phi-3, offering improved capabilities while still running locally on your machine.
+
+```bash
+# Upgrade Iris AI with new models
+iris-upgrade
+
+# Start Iris AI
+~/.config/hypr/scripts/iris-ai.sh start
+```
+
+### Dynamic Workspace Manager
+A visual workspace management system that allows you to easily navigate between workspaces, move windows, and customize workspace properties.
+
+```bash
+# Open workspace manager
+hypr-workspace
+
+# Show visual workspace selector
+hypr-workspace --select
+
+# Move current window to another workspace
+hypr-workspace --move
+```
+
+### Custom Keybindings
+The configuration includes a comprehensive set of keybindings for window management, system control, and application launching.
+
+| Keybinding | Action |
+|------------|--------|
+| Super + Tab | Open workspace selector |
+| Super + Shift + Tab | Open visual workspace manager |
+| Super + Ctrl + Tab | Move window to another workspace |
+| Super + I | Start Iris AI Assistant |
+| Super + Shift + I | Stop Iris AI Assistant |
+| Super + Ctrl + I | Upgrade Iris AI |
+| Super + Alt + P | Open performance optimizer |
 
 ## 🤝 Contributing
 
