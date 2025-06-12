@@ -191,6 +191,13 @@ copy_scripts() {
     
     # Make scripts executable
     chmod +x "$HOME/.config/hypr/scripts/"*.sh
+    chmod +x "$HOME/.config/hypr/scripts/"*.py
+    
+    # Create symlinks for new scripts
+    mkdir -p "$HOME/.local/bin"
+    ln -sf "$HOME/.config/hypr/scripts/performance-optimizer.sh" "$HOME/.local/bin/hypr-performance"
+    ln -sf "$HOME/.config/hypr/scripts/iris-ai-upgrade.sh" "$HOME/.local/bin/iris-upgrade"
+    ln -sf "$HOME/.config/hypr/scripts/workspace-manager.sh" "$HOME/.local/bin/hypr-workspace"
     
     print_message "$GREEN" "Scripts copied and made executable!"
 }
@@ -452,6 +459,138 @@ EOF
     print_message "$GREEN" "Hyprland service created and enabled!"
 }
 
+# Function to setup new features
+setup_new_features() {
+    print_message "$BLUE" "Setting up new features..."
+    
+    # Setup Performance Optimizer
+    print_message "$BLUE" "Setting up Performance Optimizer..."
+    "$HOME/.config/hypr/scripts/performance-optimizer.sh" --auto
+    
+    # Setup Workspace Manager
+    print_message "$BLUE" "Setting up Workspace Manager..."
+    mkdir -p "$HOME/.config/hypr"
+    
+    # Create workspace configuration
+    if [ ! -f "$HOME/.config/hypr/workspaces.conf" ]; then
+        cat > "$HOME/.config/hypr/workspaces.conf" << EOF
+{
+    "workspaces": {
+        "1": {
+            "name": "Main",
+            "icon": "desktop",
+            "color": "#ff6699"
+        },
+        "2": {
+            "name": "Web",
+            "icon": "web-browser",
+            "color": "#66aaff"
+        },
+        "3": {
+            "name": "Code",
+            "icon": "code",
+            "color": "#99cc33"
+        },
+        "4": {
+            "name": "Media",
+            "icon": "multimedia",
+            "color": "#cc66ff"
+        },
+        "5": {
+            "name": "Chat",
+            "icon": "chat",
+            "color": "#ffcc00"
+        },
+        "6": {
+            "name": "Files",
+            "icon": "folder",
+            "color": "#ff9933"
+        },
+        "7": {
+            "name": "Design",
+            "icon": "design",
+            "color": "#33cccc"
+        },
+        "8": {
+            "name": "Games",
+            "icon": "games",
+            "color": "#ff3366"
+        },
+        "9": {
+            "name": "Settings",
+            "icon": "settings",
+            "color": "#999999"
+        },
+        "10": {
+            "name": "Misc",
+            "icon": "misc",
+            "color": "#66cc99"
+        }
+    }
+}
+EOF
+    fi
+    
+    # Create desktop entries for new features
+    mkdir -p "$HOME/.local/share/applications"
+    
+    # Performance Optimizer desktop entry
+    cat > "$HOME/.local/share/applications/hypr-performance.desktop" << EOF
+[Desktop Entry]
+Name=Hyprland Performance Optimizer
+Comment=Optimize Hyprland performance based on hardware
+Exec=$HOME/.local/bin/hypr-performance
+Terminal=false
+Type=Application
+Categories=Settings;Utility;
+Icon=preferences-system-performance
+EOF
+    
+    # Workspace Manager desktop entry
+    cat > "$HOME/.local/share/applications/hypr-workspace.desktop" << EOF
+[Desktop Entry]
+Name=Hyprland Workspace Manager
+Comment=Manage Hyprland workspaces
+Exec=$HOME/.local/bin/hypr-workspace --select
+Terminal=false
+Type=Application
+Categories=Settings;Utility;
+Icon=preferences-desktop-workspace
+EOF
+    
+    print_message "$GREEN" "New features setup complete!"
+}
+
+# Function to update keybindings
+update_keybindings() {
+    print_message "$BLUE" "Updating keybindings..."
+    
+    # Create keybindings file
+    cat > "$HOME/.config/hypr/keybinds.conf" << EOF
+# Keybindings for new features
+
+# Performance Optimizer
+bind = SUPER ALT, P, exec, $HOME/.config/hypr/scripts/performance-optimizer.sh
+
+# Workspace Manager
+bind = SUPER, Tab, exec, $HOME/.config/hypr/scripts/workspace-manager.sh --simple
+bind = SUPER SHIFT, Tab, exec, $HOME/.config/hypr/scripts/workspace-manager.sh --select
+bind = SUPER CTRL, Tab, exec, $HOME/.config/hypr/scripts/workspace-manager.sh --move
+
+# Iris AI Assistant
+bind = SUPER, I, exec, $HOME/.config/hypr/scripts/iris-ai.sh start
+bind = SUPER SHIFT, I, exec, $HOME/.config/hypr/scripts/iris-ai.sh stop
+bind = SUPER CTRL, I, exec, $HOME/.config/hypr/scripts/iris-ai-upgrade.sh --upgrade
+EOF
+    
+    # Include keybindings in hyprland.conf if not already present
+    if ! grep -q "source = ~/.config/hypr/keybinds.conf" "$HOME/.config/hypr/hyprland.conf"; then
+        echo "source = ~/.config/hypr/keybinds.conf" >> "$HOME/.config/hypr/hyprland.conf"
+    fi
+    
+    print_message "$GREEN" "Keybindings updated!"
+}
+
 # Main function
 main() {
     print_message "$PURPLE" "=== Hyprland Anime Ricing - Ultimate Edition Installation ==="
@@ -494,7 +633,7 @@ main() {
     create_splash_desktop_entry
     create_hyprland_desktop_entry
     
-    # Create X session files
+    # Create xinitrc and xsession files
     create_xinitrc
     create_xsession
     
@@ -504,6 +643,12 @@ main() {
     # Create systemd services
     create_splash_service
     create_hyprland_service
+    
+    # Setup new features
+    setup_new_features
+    
+    # Update keybindings
+    update_keybindings
     
     print_message "$GREEN" "=== Installation Complete! ==="
     print_message "$GREEN" "You can now start Hyprland with the splash screen using one of the following methods:"
