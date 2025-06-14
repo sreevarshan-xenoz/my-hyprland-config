@@ -1,4 +1,4 @@
-# 🎌 Hyprland Anime Ricing - Ultimate Edition
+# 🎌 This is my Hyprland Anime Ricing - Ultimate Edition
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Hyprland](https://img.shields.io/badge/Hyprland-v0.34+-blue.svg)](https://hyprland.org/)
